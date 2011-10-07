@@ -1,0 +1,39 @@
+{
+  "name": "flowdock",
+  "version": "0.1.0",
+  "description": "Flowdock client/API for node.js",
+  "keywords": [
+    "flowdock"
+  ],
+  "maintainers": [
+    {
+      "name": "Ville Lautanala",
+      "email": "lautis@gmail.com"
+    }
+  ],
+  "bugs": {
+    "web": "http://github.com/flowdock/node-flowdock"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://opensource.org/licenses/mit-license.php"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "git",
+      "url": "git://github.com/flowdock/node-flowdock.git"
+    }
+  ],
+  "main": "index",
+  "directories": {
+    "lib": "./lib"
+  },
+  "os": [ "linux", "darwin" ],
+  "dependencies": {},
+  "devDependencies": {
+    "coffee-script": "*"
+  },
+  "engines": { "node": ">=0.4.0" }
+}
