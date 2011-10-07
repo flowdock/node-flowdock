@@ -41,7 +41,16 @@ class FlowdockSocket extends process.EventEmitter
       res.on "end", =>
         @connect()
 
+handshake = (cookies, subdomain, flow, callback) ->
+  options =
+    host: subdomain + host
+    path: '/flows/' + flow
+    headers:
+      'Cookie': cookies.join("; ")
 
+  https.get options, (res) =>
+    res.on "end", () =>
+      callback()
 
 class Session extends process.EventEmitter
   constructor: (@email, @password) ->
@@ -107,28 +116,67 @@ class Session extends process.EventEmitter
       path: '/flows/' + flow
       headers:
         'Cookie': @cookies.join("; ")
-    
-    https.get options, (res) =>
-      res.on "end", () =>
-        post_data = querystring.stringify(
-          channel: '/meta'
-          event: 'join'
-          message: JSON.stringify(
-            channel: '/flows/' + flow
-            client: @clientId
-          )
-        )
-        options =
-          host: subdomain + host
-          path: '/messages'
-          method: 'POST'
-          headers:
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Content-Length': post_data.length
-            'Cookie': @cookies.join("; ")
 
-        req = https.request(options)
-        req.write(post_data)
-        req.end()
+    handshake @cookies, subdomain, flow, =>
+      post_data = querystring.stringify(
+        channel: '/meta'
+        event: 'join'
+        message: JSON.stringify(
+          channel: '/flows/' + flow
+          client: @clientId
+        )
+      )
+      options =
+        host: subdomain + host
+        path: '/messages'
+        method: 'POST'
+        headers:
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Length': post_data.length
+          'Cookie': @cookies.join("; ")
+
+      req = https.request(options)
+      req.write(post_data)
+      req.end()
+
+  send: (subdomain, flow, message) ->
+    data = {}
+    data["message"] = JSON.stringify(message["content"] || message["message"])
+    data["event"] = message["event"]
+    data["tags"] = (message["tags"] || []).join(" ")
+    data["channel"] = "/flows/" + flow
+
+    ["uuid", "app"].forEach (key) ->
+      data[key] = message[key] if message[key]
+
+    postMessage = () =>
+      post_data = querystring.stringify(data)
+
+      options =
+        host: subdomain + host
+        path: '/messages'
+        method: 'POST'
+        headers:
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Length': post_data.length
+          'Cookie': @cookies.join("; ")
+
+
+      req = https.request options
+      req.write(post_data)
+      req.end()
+
+    if (@flows.filter((flow) -> flow.subdomain == subdomain && flow.name == flow).length > 0)
+      handshake ->
+        postMessage()
+    else
+      postMessage()
+
+  chatMessage: (subdomain, flow, message) ->
+    data =
+      content: message
+      app: "chat"
+      event: "message"
+    @send(subdomain, flow, data)
 
 exports.Session = Session

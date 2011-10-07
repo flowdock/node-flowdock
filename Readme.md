@@ -17,6 +17,17 @@ Flowdock client/API for node.js. Listen to messages from Flowdock in real-time a
       console.log(message);
     });
 
+    // Sending chat messages
+    session.chatMessage(subdomain, flow, "text")
+
+    // Any message (although you'll have to reverse engineer the formats)
+    session.send(subdomain, flow, {
+      event: "message",
+      content: "message",
+      app: "chat",
+      tags: []
+    });
+
 ## Development
 
 You'll need ```coffee-script``` for development. Code can be compiled with command ```cake build```.
