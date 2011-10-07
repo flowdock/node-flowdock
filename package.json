@@ -5,12 +5,10 @@
   "keywords": [
     "flowdock"
   ],
-  "maintainers": [
-    {
-      "name": "Ville Lautanala",
-      "email": "lautis@gmail.com"
-    }
-  ],
+  "author": {
+    "name": "Ville Lautanala",
+    "email": "lautis@gmail.com"
+  },
   "bugs": {
     "web": "http://github.com/flowdock/node-flowdock"
   },
