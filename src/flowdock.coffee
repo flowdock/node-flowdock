@@ -105,7 +105,7 @@ class Session extends process.EventEmitter
   fetchFlows: (callback) ->
     if @cookies.length == 0
       @on "login", =>
-        @getFlows(callback)
+        @fetchFlows(callback)
       return
 
     options =
