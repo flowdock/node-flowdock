@@ -96,10 +96,33 @@ class Session extends process.EventEmitter
       )
       res.on "end", () =>
         @start()
+        @emit "login"
         callback()
 
     req.write(post_data)
     req.end()
+
+  fetchFlows: (callback) ->
+    if @cookies.length == 0
+      @on "login", =>
+        @getFlows(callback)
+      return
+
+    options =
+      host: 'www' + host
+      path: '/flows.json'
+      method: 'GET'
+      headers:
+        'Cookie': @cookies.join("; ")
+
+    request = https.get options, (res) =>
+      data = ""
+      res.on "data", (chunk) ->
+        data += chunk
+      res.on "end", ->
+        flows = JSON.parse(data.toString("utf8"))
+        callback(flows)
+    request.end()
 
   subscribe: (subdomain, flow) ->
     @flows.push(
