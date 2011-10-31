@@ -2,7 +2,7 @@ https = require("https")
 querystring = require('querystring')
 events = require("events")
 
-host = ".flowdock.com"
+host = (process.env.FLOWDOCK_ENDPOINT || ".flowdock.com")
 
 class FlowdockSocket extends process.EventEmitter
   constructor: (@cookies, @clientId) ->
