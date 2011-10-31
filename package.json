@@ -10,7 +10,7 @@
     "email": "lautis@gmail.com"
   },
   "bugs": {
-    "web": "http://github.com/flowdock/node-flowdock"
+    "url": "http://github.com/flowdock/node-flowdock"
   },
   "licenses": [
     {
