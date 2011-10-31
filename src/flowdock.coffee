@@ -63,6 +63,7 @@ class Session extends process.EventEmitter
     )(16)
     @cookies = []
     @flows = []
+    @users = []
     @login(() =>
       @flows.forEach((flow) =>
         @subscribe(flow.subdomain, flow.name)
@@ -122,6 +123,36 @@ class Session extends process.EventEmitter
       res.on "end", ->
         flows = JSON.parse(data.toString("utf8"))
         callback(flows)
+    request.end()
+
+  fetchUsers: (subdomain, flowSlug, callback) ->
+    if @cookies.length == 0
+      @on "login", =>
+        @fetchUsers(subdomain, flowSlug, callback)
+      return
+
+    options =
+      host: subdomain + host
+      path: '/flows/' + flowSlug + '.json'
+      method: 'GET'
+      headers:
+        'Cookie': @cookies.join("; ")
+
+    request = https.get options, (res) =>
+      data = ""
+      res.on "data", (chunk) ->
+        data += chunk
+      res.on "end", =>
+        json = JSON.parse(data.toString("utf8"))
+        json.users.forEach (flow_user) =>
+          return if flow_user.user.disabled == true
+          flow = @flows.filter((flow) -> return flow.slug == flowSlug)[0]
+          user =
+            id: flow_user.user.id
+            name: flow_user.user.nick
+            flow: flow
+          @users.push(user)
+        callback(@users)
     request.end()
 
   subscribe: (subdomain, flow) ->
