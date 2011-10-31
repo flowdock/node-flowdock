@@ -145,12 +145,7 @@ class Session extends process.EventEmitter
       res.on "end", =>
         json = JSON.parse(data.toString("utf8"))
         json.users.forEach (flow_user) =>
-          flow = @flows.filter((flow) -> return flow.slug == flowSlug)[0]
-          user =
-            id: flow_user.user.id
-            name: flow_user.user.nick
-            flow: flow
-          @users.push(user)
+          @users.push(flow_user)
         callback(@users)
     request.end()
 
