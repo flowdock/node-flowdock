@@ -107,7 +107,7 @@ class Session extends process.EventEmitter
 
   fetchFlows: (callback) ->
     if @cookies.length == 0
-      @on "login", =>
+      @once "login", =>
         @fetchFlows(callback)
       return
 
@@ -129,7 +129,7 @@ class Session extends process.EventEmitter
 
   fetchUsers: (subdomain, flowSlug, callback) ->
     if @cookies.length == 0
-      @on "login", =>
+      @once "login", =>
         @fetchUsers(subdomain, flowSlug, callback)
       return
 
@@ -153,7 +153,7 @@ class Session extends process.EventEmitter
 
   subscribe: (subdomain, flow) ->
     if @cookies.length == 0
-      @on "login", =>
+      @once "login", =>
         @subscribe subdomain, flow
       return
 
