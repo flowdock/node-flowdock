@@ -15,6 +15,10 @@ class FlowdockSocket extends process.EventEmitter
     "last_activity": new Date().getTime(),
     "client": @clientId
 
+  close: () ->
+    if @request
+      @request.abort()
+
   connect: () ->
     data = querystring.stringify(@data())
     options =
@@ -24,7 +28,7 @@ class FlowdockSocket extends process.EventEmitter
       headers:
         'Cookie': @cookies.join("; ")
 
-    https.get options, (res) =>
+    @request = https.get options, (res) =>
       buffer = ""
       res.on "data", (data) =>
         chunk = data.toString("utf8")
