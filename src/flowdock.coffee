@@ -46,6 +46,8 @@ class FlowdockSocket extends process.EventEmitter
             @ack = message.id
             @emit("message", message)
         buffer = ""
+      res.on "close", =>
+        console.log "Connection terminated. Restart your connection to get back online."
       res.on "end", =>
         @connect()
 
