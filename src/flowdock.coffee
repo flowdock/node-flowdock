@@ -29,6 +29,10 @@ class FlowdockSocket extends process.EventEmitter
         'Cookie': @cookies.join("; ")
 
     @request = https.get options, (res) =>
+      if res.statusCode > 500
+        @emit "error", res.statusCode, "Backend connection failed"
+        return
+
       buffer = ""
       res.on "data", (data) =>
         chunk = data.toString("utf8")
