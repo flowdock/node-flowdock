@@ -7,7 +7,7 @@ handleError = (err) ->
 
 print = (data) -> console.log data.toString().trim()
 
-task 'build', 'Compile riak-js Coffeescript source to Javascript', ->
+task 'build', 'Compile Flowdock Coffeescript source to Javascript', ->
   exec 'mkdir -p lib && ln -sf ../src/riak.desc lib && coffee -c -o lib src', handleError
 
 task 'clean', 'Remove generated Javascripts', ->
