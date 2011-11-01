@@ -94,9 +94,7 @@ class Session extends process.EventEmitter
         'Content-Length': post_data.length
 
     req = https.request options, (res) =>
-      @cookies = res.headers["set-cookie"].filter((cookie) ->
-        cookie.indexOf("secure; HttpOnly") > 0
-      ).map((cookie) ->
+      @cookies = res.headers["set-cookie"].map((cookie) ->
         cookie.split(";")[0]
       )
       res.on "end", () =>
