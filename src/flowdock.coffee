@@ -62,6 +62,11 @@ handshake = (cookies, subdomain, flow, callback) ->
 
 class Session extends process.EventEmitter
   constructor: (@email, @password) ->
+    @flows = []
+    @users = []
+    @initialize()
+
+  initialize: () ->
     @clientId = (random = (length) ->
       if length == 0
         ''
@@ -69,20 +74,26 @@ class Session extends process.EventEmitter
         chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz"
         chars.charAt(Math.floor(Math.random() * chars.length)) + random(length - 1)
     )(16)
-    @cookies = []
-    @flows = []
     @users = []
+    @cookies = []
+    @socket = null
     @login()
+    @subscribe flow.subdomain, flow.name for flow in @flows
 
   start: () ->
     @socket = new FlowdockSocket(@cookies, @clientId)
     @socket.on "message", (message) =>
       @emit("message", message)
+    @socket.on "error", (statusCode, message) =>
+      setTimeout () =>
+        @initialize()
+      , 5000
 
   login: () ->
     post_data = querystring.stringify(
       "user_session[email]": @email
       "user_session[password]": @password
+      "user_session[remember_me]": "1"
     )
 
     options =
