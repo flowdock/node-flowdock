@@ -104,7 +104,6 @@ class Session extends process.EventEmitter
         cookie.split(";")[0]
       )
       res.on "end", () =>
-        @start()
         @emit "login"
         callback()
 
@@ -164,9 +163,6 @@ class Session extends process.EventEmitter
     )
     return if @cookies.length == 0
 
-    if @flows.length == 0
-      @start()
-
     options =
       host: subdomain + host
       path: '/flows/' + flow
@@ -174,6 +170,7 @@ class Session extends process.EventEmitter
         'Cookie': @cookies.join("; ")
 
     handshake @cookies, subdomain, flow, =>
+      @start() unless @socket
       post_data = querystring.stringify(
         channel: '/meta'
         event: 'join'
