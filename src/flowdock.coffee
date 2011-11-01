@@ -72,18 +72,14 @@ class Session extends process.EventEmitter
     @cookies = []
     @flows = []
     @users = []
-    @login(() =>
-      @flows.forEach((flow) =>
-        @subscribe(flow.subdomain, flow.name)
-      )
-    )
+    @login()
 
   start: () ->
     @socket = new FlowdockSocket(@cookies, @clientId)
     @socket.on "message", (message) =>
       @emit("message", message)
 
-  login: (callback) ->
+  login: () ->
     post_data = querystring.stringify(
       "user_session[email]": @email
       "user_session[password]": @password
@@ -105,7 +101,6 @@ class Session extends process.EventEmitter
       )
       res.on "end", () =>
         @emit "login"
-        callback()
 
     req.write(post_data)
     req.end()
@@ -157,11 +152,16 @@ class Session extends process.EventEmitter
     request.end()
 
   subscribe: (subdomain, flow) ->
-    @flows.push(
-      subdomain: subdomain
-      name: flow
-    )
-    return if @cookies.length == 0
+    if @cookies.length == 0
+      @on "login", =>
+        @subscribe subdomain, flow
+      return
+
+    if @flows.filter((f) -> f.subdomain == subdomain && f.name == flow).length == 0
+      @flows.push(
+        subdomain: subdomain
+        name: flow
+      )
 
     options =
       host: subdomain + host
