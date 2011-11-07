@@ -104,14 +104,20 @@ class Session extends process.EventEmitter
       method: 'POST'
       headers:
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': post_data.length
+        'Content-Length': post_data.length,
+        'Accept': 'text/javascript'
 
     req = https.request options, (res) =>
       @cookies = res.headers["set-cookie"].map((cookie) ->
         cookie.split(";")[0]
       )
       res.on "end", () =>
-        @emit "login"
+        switch res.statusCode
+          when 200, 302
+            @emit "login"
+          else
+            console.log "ERROR: Unsuccessful login. Exiting."
+            process.exit(0)
 
     req.write(post_data)
     req.end()
