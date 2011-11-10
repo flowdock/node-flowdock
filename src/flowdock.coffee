@@ -116,8 +116,8 @@ class Session extends process.EventEmitter
           when 200, 302
             @emit "login"
           else
-            console.log "ERROR: Unsuccessful login. Exiting."
-            process.exit(0)
+            console.error "ERROR: Flowdock Login failed"
+            @emit "error", "Login failed"
 
     req.write(post_data)
     req.end()
