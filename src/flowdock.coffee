@@ -43,7 +43,7 @@ class FlowdockSocket extends process.EventEmitter
         (buffer + chunk).split("\n").forEach (json) =>
           if (json.length > 0)
             message = JSON.parse(json)
-            @ack = Math.max(message.id, @ack)
+            @ack = message.id
             @emit("message", message)
         buffer = ""
       res.on "close", =>
