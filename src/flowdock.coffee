@@ -12,18 +12,15 @@ httpClient = (FLOWDOCK_API_URL.protocol == 'https' && https || http)
 class Session extends process.EventEmitter
   constructor: (@email, @password) ->
     @auth = 'Basic ' + new Buffer(@email + ':' + @password).toString('base64')
-    @flows = []
-    @users = []
-    @initialized = false
-    @initialize()
+    @_flows = []
+    @_users = []
 
-  initialize: () ->
+  flows: (callback) ->
     @fetchFlows (flows) =>
       for flow in flows
-        @users.push user for user in flow.users when !@users.some((u) -> u.id == user.id)
-        @flows.push flow
-      @initialized = true
-      @emit 'initialized'
+        @_users.push user for user in flow.users when !@_users.some((u) -> u.id == user.id)
+        @_flows.push flow if !@_flows.some((f) -> f.id == flow.id)
+      callback(@_flows)
 
   fetchFlows: (callback) ->
     options =
@@ -44,47 +41,43 @@ class Session extends process.EventEmitter
         callback(flows)
     request.end()
 
-  stream: () ->
-    if @initialized == true
-      for flow in @flows
-        @streamFlow(flow.id)
-    else
-      @on 'initialized', () ->
-        for flow in @flows
-          @streamFlow(flow.id)
+  stream: (flows) ->
+    return new Stream(@auth, flows)
 
-  streamFlow: (flow) ->
+class Stream extends process.EventEmitter
+  constructor: (@auth, @flows) ->
+    @stream = @openStream(@flows.join(','))
+
+  openStream: (flowIds) ->
     options =
       host: FLOWDOCK_STREAM_URL.hostname
       port: FLOWDOCK_STREAM_URL.port
-      path: '/flows/' + flow
+      path: '/flows?filter=' + flowIds
       method: 'GET'
       headers:
         'Authorization': @auth
         'Accept': 'application/json'
 
     req = httpClient.get options, (res) =>
+      parser = new StreamParser()
       if res.statusCode > 500
         @emit "error", res.statusCode, "Backend connection failed"
         return
 
-      buffer = ""
       res.on "data", (data) =>
-        chunk = data.toString("utf8")
-        if chunk[chunk.length - 1] != "\n"
-          buffer += chunk
-          return
-
-        (buffer + chunk).split("\n").forEach (json) =>
-          if (json.length > 0)
-            message = JSON.parse(json)
-            @emit 'message', message
-        buffer = ""
+        messages = parser.parse(data)
+        for message in messages
+          @emit 'message', message
       res.on "close", =>
         console.log "Connection terminated. Restart your connection to get back online."
       res.on "end", =>
         console.log 'Connection ended.'
     req.end()
+
+    return req
+
+  close: () ->
+    @stream.abort()
 
   message: (flow, message, tags) ->
     data =
@@ -119,4 +112,20 @@ class Session extends process.EventEmitter
     req.write(post_data)
     req.end()
 
+class StreamParser
+  LF = "\r\n"
+  constructor: () ->
+    # TODO: change @buffer to be a real Buffer
+    @buffer = Buffer ""
+
+  parse: (buf) ->
+    @buffer += buf
+    jsons = []
+    while ((index = @buffer.indexOf(LF)) > -1)
+      ret = @buffer.slice(0, index)
+      @buffer = @buffer.slice(index + LF.length)
+      jsons.push JSON.parse(ret.toString('utf8')) # TODO: use wtf8 library by lautis
+    return jsons
+
 exports.Session = Session
+exports.StreamParser = StreamParser
