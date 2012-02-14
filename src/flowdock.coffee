@@ -1,34 +1,69 @@
-https = require("https")
-querystring = require('querystring')
-events = require("events")
+url         = require 'url'
+http        = require 'http'
+https       = require 'https'
+querystring = require 'querystring'
+events      = require 'events'
 
-host = (process.env.FLOWDOCK_ENDPOINT || ".flowdock.com")
+FLOWDOCK_API_URL    = url.parse(process.env.FLOWDOCK_API_URL    || 'https://api.flowdock.com')
+FLOWDOCK_STREAM_URL = url.parse(process.env.FLOWDOCK_STREAM_URL || 'https://stream.flowdock.com')
 
-class FlowdockSocket extends process.EventEmitter
-  constructor: (@cookies, @clientId) ->
-    @ack = -1
-    @connect()
+httpClient = (FLOWDOCK_API_URL.protocol == 'https' && https || http)
 
-  data: () ->
-    "ack": @ack,
-    "mode": "stream2"
-    "last_activity": new Date().getTime(),
-    "client": @clientId
+class Session extends process.EventEmitter
+  constructor: (@email, @password) ->
+    @auth = 'Basic ' + new Buffer(@email + ':' + @password).toString('base64')
+    @flows = []
+    @users = []
+    @initialized = false
+    @initialize()
 
-  close: () ->
-    if @request
-      @request.abort()
+  initialize: () ->
+    @fetchFlows (flows) =>
+      for flow in flows
+        @users.push user for user in flow.users when !@users.some((u) -> u.id == user.id)
+        @flows.push flow
+      @initialized = true
+      @emit 'initialized'
 
-  connect: () ->
-    data = querystring.stringify(@data())
+  fetchFlows: (callback) ->
     options =
-      host: 'www' + host
-      path: '/messages?' + data
+      host: FLOWDOCK_API_URL.hostname
+      port: FLOWDOCK_API_URL.port
+      path: '/flows?users=1'
       method: 'GET'
       headers:
-        'Cookie': @cookies.join("; ")
+        'Authorization': @auth
+        'Accept': 'application/json'
 
-    @request = https.get options, (res) =>
+    request = httpClient.get options, (res) ->
+      data = ""
+      res.on "data", (chunk) ->
+        data += chunk
+      res.on "end", ->
+        flows = JSON.parse(data.toString("utf8"))
+        callback(flows)
+    request.end()
+
+  stream: () ->
+    if @initialized == true
+      for flow in @flows
+        @streamFlow(flow.id)
+    else
+      @on 'initialized', () ->
+        for flow in @flows
+          @streamFlow(flow.id)
+
+  streamFlow: (flow) ->
+    options =
+      host: FLOWDOCK_STREAM_URL.hostname
+      port: FLOWDOCK_STREAM_URL.port
+      path: '/flows/' + flow
+      method: 'GET'
+      headers:
+        'Authorization': @auth
+        'Accept': 'application/json'
+
+    req = httpClient.get options, (res) =>
       if res.statusCode > 500
         @emit "error", res.statusCode, "Backend connection failed"
         return
@@ -43,210 +78,45 @@ class FlowdockSocket extends process.EventEmitter
         (buffer + chunk).split("\n").forEach (json) =>
           if (json.length > 0)
             message = JSON.parse(json)
-            @ack = Math.max(message.id, @ack)
-            @emit("message", message)
+            @emit 'message', message
         buffer = ""
       res.on "close", =>
         console.log "Connection terminated. Restart your connection to get back online."
       res.on "end", =>
-        @connect()
-
-handshake = (cookies, subdomain, flow, callback) ->
-  options =
-    host: subdomain + host
-    path: '/flows/' + flow
-    headers:
-      'Cookie': cookies.join("; ")
-
-  https.get options, (res) =>
-    res.on "end", () =>
-      callback()
-
-class Session extends process.EventEmitter
-  constructor: (@email, @password) ->
-    @flows = []
-    @users = []
-    @initialize()
-
-  initialize: () ->
-    @clientId = (random = (length) ->
-      if length == 0
-        ''
-      else
-        chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz"
-        chars.charAt(Math.floor(Math.random() * chars.length)) + random(length - 1)
-    )(16)
-    @users = []
-    @cookies = []
-    @socket = null
-    @login()
-    @subscribe flow.subdomain, flow.name for flow in @flows
-
-  start: () ->
-    @socket = new FlowdockSocket(@cookies, @clientId)
-    @socket.on "message", (message) =>
-      @emit("message", message)
-    @socket.on "error", (statusCode, message) =>
-      setTimeout () =>
-        @initialize()
-      , 5000
-
-  login: () ->
-    post_data = querystring.stringify(
-      "user_session[email]": @email
-      "user_session[password]": @password
-      "user_session[remember_me]": "1"
-    )
-
-    options =
-      host: 'www' + host
-      path: '/session'
-      method: 'POST'
-      headers:
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': post_data.length,
-        'Accept': 'text/javascript'
-
-    req = https.request options, (res) =>
-      @cookies = res.headers["set-cookie"].map((cookie) ->
-        cookie.split(";")[0]
-      )
-      res.on "end", () =>
-        switch res.statusCode
-          when 200, 302
-            @emit "login"
-          else
-            console.error "ERROR: Flowdock Login failed"
-            @emit "error", "Login failed"
-
-    req.write(post_data)
+        console.log 'Connection ended.'
     req.end()
 
-  fetchFlows: (callback) ->
-    if @cookies.length == 0
-      @once "login", =>
-        @fetchFlows(callback)
-      return
-
-    options =
-      host: 'www' + host
-      path: '/flows.json'
-      method: 'GET'
-      headers:
-        'Cookie': @cookies.join("; ")
-
-    request = https.get options, (res) =>
-      data = ""
-      res.on "data", (chunk) ->
-        data += chunk
-      res.on "end", ->
-        flows = JSON.parse(data.toString("utf8"))
-        callback(flows)
-    request.end()
-
-  fetchUsers: (subdomain, flowSlug, callback) ->
-    if @cookies.length == 0
-      @once "login", =>
-        @fetchUsers(subdomain, flowSlug, callback)
-      return
-
-    options =
-      host: subdomain + host
-      path: '/flows/' + flowSlug + '.json'
-      method: 'GET'
-      headers:
-        'Cookie': @cookies.join("; ")
-
-    request = https.get options, (res) =>
-      data = ""
-      res.on "data", (chunk) ->
-        data += chunk
-      res.on "end", =>
-        json = JSON.parse(data.toString("utf8"))
-        json.users.forEach (flow_user) =>
-          @users.push(flow_user)
-        callback(@users)
-    request.end()
-
-  subscribe: (subdomain, flow) ->
-    if @cookies.length == 0
-      @once "login", =>
-        @subscribe subdomain, flow
-      return
-
-    if @flows.filter((f) -> f.subdomain == subdomain && f.name == flow).length == 0
-      @flows.push(
-        subdomain: subdomain
-        name: flow
-      )
-
-    options =
-      host: subdomain + host
-      path: '/flows/' + flow
-      headers:
-        'Cookie': @cookies.join("; ")
-
-    handshake @cookies, subdomain, flow, =>
-      @start() unless @socket
-      post_data = querystring.stringify(
-        channel: '/meta'
-        event: 'join'
-        message: JSON.stringify(
-          channel: '/flows/' + flow
-          client: @clientId
-        )
-      )
-      options =
-        host: subdomain + host
-        path: '/messages'
-        method: 'POST'
-        headers:
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Content-Length': post_data.length
-          'Cookie': @cookies.join("; ")
-
-      req = https.request(options)
-      req.write(post_data)
-      req.end()
-
-  send: (subdomain, flow, message) ->
-    data = {}
-    data["message"] = JSON.stringify(message["content"] || message["message"])
-    data["event"] = message["event"]
-    data["tags"] = (message["tags"] || []).join(" ")
-    data["channel"] = "/flows/" + flow
-
-    ["uuid", "app"].forEach (key) ->
-      data[key] = message[key] if message[key]
-
-    postMessage = () =>
-      post_data = querystring.stringify(data)
-
-      options =
-        host: subdomain + host
-        path: '/messages'
-        method: 'POST'
-        headers:
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Content-Length': post_data.length
-          'Cookie': @cookies.join("; ")
-
-
-      req = https.request options
-      req.write(post_data)
-      req.end()
-
-    if (@flows.filter((flow) -> flow.subdomain == subdomain && flow.name == flow).length > 0)
-      handshake ->
-        postMessage()
-    else
-      postMessage()
-
-  chatMessage: (subdomain, flow, message) ->
+  message: (flow, message, tags) ->
     data =
+      event: 'message'
       content: message
-      app: "chat"
-      event: "message"
-    @send(subdomain, flow, data)
+      tags: tags || []
+    @post(flow, data)
+
+  status: (flow, status) ->
+    data =
+      event: 'status'
+      content: status
+    @post(flow, data)
+
+  post: (flow, data) ->
+    post_data = querystring.stringify(data)
+    options =
+      host: FLOWDOCK_API_URL.hostname
+      port: FLOWDOCK_API_URL.port
+      path: '/flows/' + flow + '/messages'
+      method: 'POST'
+      headers:
+        'Authorization': @auth
+        'Content-Type': 'application/x-www-form-urlencoded'
+        'Content-Length': post_data.length
+        'Accept': 'application/json'
+
+    req = httpClient.request options, (res) ->
+      if res.statusCode >= 400
+        @emit 'error', res.statusCode, "Couldn't post your #{data.event} to Flowdock."
+        return
+    req.write(post_data)
+    req.end()
 
 exports.Session = Session
