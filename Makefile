@@ -1,5 +1,4 @@
 test:
-	npm install
-	./node_modules/.bin/coffee test/flowdock.test.coffee
+	coffee test/buffer_parser.test.coffee
 
 .PHONY: test

@@ -4,6 +4,8 @@ https       = require 'https'
 querystring = require 'querystring'
 events      = require 'events'
 
+BufferParser = require('./buffer_parser')
+
 FLOWDOCK_API_URL    = url.parse(process.env.FLOWDOCK_API_URL    || 'https://api.flowdock.com')
 FLOWDOCK_STREAM_URL = url.parse(process.env.FLOWDOCK_STREAM_URL || 'https://stream.flowdock.com')
 
@@ -59,7 +61,7 @@ class Stream extends process.EventEmitter
         'Accept': 'application/json'
 
     req = httpClient.get options, (res) =>
-      parser = new StreamParser()
+      parser = new BufferParser()
       if res.statusCode > 500
         @emit "error", res.statusCode, "Backend connection failed"
         return
@@ -112,20 +114,5 @@ class Stream extends process.EventEmitter
     req.write(post_data)
     req.end()
 
-class StreamParser
-  LF = "\r\n"
-  constructor: () ->
-    # TODO: change @buffer to be a real Buffer
-    @buffer = Buffer ""
-
-  parse: (buf) ->
-    @buffer += buf
-    jsons = []
-    while ((index = @buffer.indexOf(LF)) > -1)
-      ret = @buffer.slice(0, index)
-      @buffer = @buffer.slice(index + LF.length)
-      jsons.push JSON.parse(ret.toString('utf8')) # TODO: use wtf8 library by lautis
-    return jsons
 
 exports.Session = Session
-exports.StreamParser = StreamParser
