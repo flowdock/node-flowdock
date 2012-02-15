@@ -6,6 +6,7 @@ Flowdock Streaming client for node.js. Listen to messages from Flowdock in real-
 
     npm install flowdock
 or
+
     # in package.json
     "dependencies": {
       "node-flowdock": "latest"
