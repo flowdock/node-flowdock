@@ -43,7 +43,8 @@ class Session extends process.EventEmitter
         callback(flows)
     request.end()
 
-  stream: (flows) ->
+  stream: (flows...) ->
+    flows = flows[0] if flows[0] instanceof Array && flows.length == 1
     return new Stream(@auth, flows)
 
 class Stream extends process.EventEmitter
