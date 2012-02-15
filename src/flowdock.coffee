@@ -63,8 +63,11 @@ class Stream extends process.EventEmitter
 
     req = httpClient.get options, (res) =>
       parser = new BufferParser()
-      if res.statusCode > 500
-        @emit "error", res.statusCode, "Backend connection failed"
+      if res.statusCode >= 500
+        @emit "error", res.statusCode, "Streaming connection failed"
+        return
+      if res.statusCode >= 400
+        @emit "error", res.statusCode, "Flow not found"
         return
 
       res.on "data", (data) =>
@@ -109,8 +112,11 @@ class Stream extends process.EventEmitter
         'Accept': 'application/json'
 
     req = httpClient.request options, (res) ->
+      if res.statusCode >= 500
+        @emit "error", res.statusCode, "Couldn't estabilish a connection to Flowdock Messages API"
+        return
       if res.statusCode >= 400
-        @emit 'error', res.statusCode, "Couldn't post your #{data.event} to Flowdock."
+        @emit 'error', res.statusCode, "Couldn't post your #{data.event} to Flowdock Messages API"
         return
     req.write(post_data)
     req.end()
