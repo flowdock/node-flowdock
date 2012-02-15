@@ -2,7 +2,7 @@ Session = require('./flowdock').Session
 
 session = new Session(process.env.EMAIL, process.env.PASS)
 
-flow = 'subdomain/flow'
+flow = process.env.FLOW
 stream = session.stream flow
 stream.on 'message', (message) ->
   stream.status flow, 'I just got the first message through the Flowdock stream API.'

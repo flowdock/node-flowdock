@@ -5,7 +5,7 @@
 
   session = new Session(process.env.EMAIL, process.env.PASS);
 
-  flow = 'subdomain/flow';
+  flow = process.env.FLOW;
 
   stream = session.stream(flow);
 
