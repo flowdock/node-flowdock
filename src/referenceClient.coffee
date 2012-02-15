@@ -12,7 +12,7 @@ stream.on 'message', (message) ->
 
 session.flows (flows) ->
   flowIds = flows.map((f) -> f.id)
-  stream = session.stream flowIds
+  anotherStream = session.stream flowIds
   stream.on 'message', (message) ->
     console.log 'message from stream:', message
-    stream.close()
+    anotherStream.close()

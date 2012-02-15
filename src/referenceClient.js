@@ -16,14 +16,14 @@
   });
 
   session.flows(function(flows) {
-    var flowIds;
+    var anotherStream, flowIds;
     flowIds = flows.map(function(f) {
       return f.id;
     });
-    stream = session.stream(flowIds);
+    anotherStream = session.stream(flowIds);
     return stream.on('message', function(message) {
       console.log('message from stream:', message);
-      return stream.close();
+      return anotherStream.close();
     });
   });
 
