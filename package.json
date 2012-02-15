@@ -29,7 +29,9 @@
     "lib": "./lib"
   },
   "os": [ "linux", "darwin" ],
-  "dependencies": {},
+  "dependencies": {
+    "buffertools": "latest"
+  },
   "devDependencies": {
     "coffee-script": ">=1.2.0"
   },
