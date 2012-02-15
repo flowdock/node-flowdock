@@ -75,9 +75,13 @@ class Stream extends process.EventEmitter
         for message in messages
           @emit 'message', message
       res.on "close", =>
-        console.log "Connection terminated. Restart your connection to get back online."
+        return if @connectionClosing == true
+        @connectionClosing = true
+        console.log "Connection to Flowdock Streaming API closed. Restart your connection to get back online."
       res.on "end", =>
-        console.log 'Connection ended.'
+        return if @connectionClosing == true
+        @connectionClosing = true
+        console.log "Connection to Flowdock Streaming API ended. Restart your connection to get back online."
     req.end()
 
     return req
