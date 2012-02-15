@@ -30,10 +30,12 @@
   },
   "os": [ "linux", "darwin" ],
   "dependencies": {
-    "buffertools": "latest"
+    "buffertools": "1.0.7"
   },
   "devDependencies": {
-    "coffee-script": ">=1.2.0"
+    "coffee-script": ">=1.2.0",
+    "mocha": "0.10.1",
+    "colors": "0.6.0-1"
   },
   "engines": { "node": ">=0.6.7" }
 }

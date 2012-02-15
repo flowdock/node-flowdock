@@ -1,4 +1,4 @@
 test:
-	coffee test/buffer_parser.test.coffee
+	./node_modules/.bin/_mocha --reporter spec
 
 .PHONY: test
