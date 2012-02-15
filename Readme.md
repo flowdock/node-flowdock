@@ -8,50 +8,58 @@ Flowdock Streaming client for node.js. Listen to messages from Flowdock in real-
 
 ## Example usage
 
-    var Session, flow, session, stream;
+### Opening a stream
+```javascript
+var Session = require('./flowdock').Session,
+    flow = 'subdomain/flow',
+    session = new Session(username, password),
+    stream;
 
-    Session = require('./flowdock').Session;
+stream = session.stream(flow);
+stream.close();
+```
 
-    session = new Session(username, password);
+### Listen to messages
+```javascript
+stream = session.stream(flow);
+stream.on('message', function(message) {
+  // Do stuff with message
+  return stream.close();
+});
+```
 
-    // Stream a single flow and respond to messages.
-    flow = 'subdomain/flow';
-    stream = session.stream(flow);
-    stream.on('message', function(message) {
+### Set your status for a flow
+```javascript
+stream.status(flow, 'I just got the first message through the Flowdock stream API.');
+```
 
-      // Set the status
-      stream.status(flow, 'I just got the first message through the Flowdock stream API.');
+### Post a chat message to a flow
+```javascript
+stream.message(flow, 'Isn\'t this cool?');
+```
 
-      // Post a chat message
-      stream.message(flow, 'Isn\'t this cool?');
-
-      return stream.close();
-    });
-
-    // Fetch and stream all the flows your user can access.
-    session.flows(function(flows) {
-      var anotherStream, flowIds;
-      flowIds = flows.map(function(f) {
-        return f.id;
-      });
-      anotherStream = session.stream(flowIds);
-      return anotherStream.on('message', function(msg) {
-
-        console.log('message from stream:', msg);
-        // variable 'msg' being something like:
-        // {
-        //   event: 'activity.user',
-        //   flow: 'subdomain/flow',
-        //   content: { last_activity: 1329310503807 },
-        //   user: '12345',
-        //   .. plus few other fields
-        // }
-        // See the full message specification @ Flowdock API Message documentation
-
-        // Finally close the stream.
-        return anotherStream.close();
-      });
-    });
+### Fetch and stream all the flows your user has an access
+```javascript
+session.flows(function(flows) {
+  var anotherStream, flowIds;
+  flowIds = flows.map(function(f) {
+    return f.id;
+  });
+  anotherStream = session.stream(flowIds);
+  return anotherStream.on('message', function(msg) {
+    console.log('message from stream:', msg);
+    // variable 'msg' being something like:
+    // {
+    //   event: 'activity.user',
+    //   flow: 'subdomain/flow',
+    //   content: { last_activity: 1329310503807 },
+    //   user: '12345',
+    //   .. plus few other fields
+    // }
+    // See the full message specification @ Flowdock API Message documentation
+  });
+});
+```
 
 ## Development
 
