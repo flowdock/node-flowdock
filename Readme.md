@@ -14,16 +14,14 @@ or
 
 ## Example usage
 
-References to flows are strings in format 'subdomain/flow'.
+Flows are stringly typed. Either subdomain:flow or subdomain/flow can be used. This may change in future versions.
 
-#### Opening a stream
+#### Opening and closing a stream
 ```javascript
-var Session = require('./flowdock').Session,
-    flow = 'subdomain/flow',
-    session = new Session(username, password),
-    stream;
+var Session = require('./flowdock').Session;
 
-stream = session.stream(flow);
+var session = new Session(username, password);
+var stream = session.stream('example/main');
 stream.close();
 ```
 The argument(s) for stream() can be a string ('subdomain/flow'), an array (['subdomain/flow', 'subdomain/anotherflow']) or a list of strings ('subdomain/flow', 'subdomain/anotherflow').
@@ -45,13 +43,13 @@ The full message format specification for different message types is in Flowdock
 
 #### Set your status for a flow
 ```javascript
-stream.status(flow, 'I just got the first message through the Flowdock stream API.');
+session.status('example:main', 'I just got the first message through the Flowdock stream API.');
 ```
 Both arguments should be strings. Setting a status is flow specific.
 
 #### Post a chat message to a flow
 ```javascript
-stream.message(flow, 'Isn\'t this cool?');
+session.message('example:main', 'Isn\'t this cool?');
 ```
 Both arguments should be strings. Sending a message is flow specific.
 
@@ -81,4 +79,4 @@ The full message format specification for different message types is in Flowdock
 
 ## Development
 
-You'll need ```coffee-script```, ```mocha``` and ```colors``` for development, just run ```npm install```. Code can be compiled to .js with command ```cake build```.
+You'll need ```coffee-script```, ```mocha``` and ```colors``` for development, just run ```npm install```. Code can be compiled to .js with command ```make build```.
