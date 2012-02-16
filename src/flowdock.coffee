@@ -4,11 +4,9 @@ https       = require 'https'
 querystring = require 'querystring'
 events      = require 'events'
 
-BufferParser = require('./buffer_parser')
+Stream = require './stream'
 
-FLOWDOCK_API_URL    = url.parse(process.env.FLOWDOCK_API_URL    || 'https://api.flowdock.com')
-FLOWDOCK_STREAM_URL = url.parse(process.env.FLOWDOCK_STREAM_URL || 'https://stream.flowdock.com')
-
+FLOWDOCK_API_URL = url.parse(process.env.FLOWDOCK_API_URL || 'https://api.flowdock.com')
 httpClient = (FLOWDOCK_API_URL.protocol == 'https' && https || http)
 
 class Session extends process.EventEmitter
@@ -35,7 +33,7 @@ class Session extends process.EventEmitter
 
   stream: (flows...) ->
     flows = flows[0] if flows[0] instanceof Array && flows.length == 1
-    return new Stream(@auth, flows)
+    return Stream.connect @auth, flows
 
   send: (subdomain, flow, message, callback) ->
     json = JSON.stringify(message)
@@ -74,46 +72,6 @@ class Session extends process.EventEmitter
       content: status
     @send(flow, data)
 
-class Stream extends process.EventEmitter
-  constructor: (@auth, @flows) ->
-    @stream = @openStream(@flows.join(','))
 
-  openStream: (flowIds) ->
-    options =
-      host: FLOWDOCK_STREAM_URL.hostname
-      port: FLOWDOCK_STREAM_URL.port
-      path: '/flows?filter=' + flowIds
-      method: 'GET'
-      headers:
-        'Authorization': @auth
-        'Accept': 'application/json'
-
-    req = httpClient.get options, (res) =>
-      parser = new BufferParser()
-      if res.statusCode >= 500
-        @emit "error", res.statusCode, "Streaming connection failed"
-        return
-      if res.statusCode >= 400
-        @emit "error", res.statusCode, "Flow not found"
-        return
-
-      res.on "data", (data) =>
-        messages = parser.parse(data)
-        for message in messages
-          @emit 'message', message
-      res.on "close", =>
-        return if @connectionClosing == true
-        @connectionClosing = true
-        console.log "Connection to Flowdock Streaming API closed. Restart your connection to get back online."
-      res.on "end", =>
-        return if @connectionClosing == true
-        @connectionClosing = true
-        console.log "Connection to Flowdock Streaming API ended. Restart your connection to get back online."
-    req.end()
-
-    return req
-
-  close: () ->
-    @stream.abort()
 
 exports.Session = Session
