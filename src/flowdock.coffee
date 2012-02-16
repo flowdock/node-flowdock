@@ -37,6 +37,43 @@ class Session extends process.EventEmitter
     flows = flows[0] if flows[0] instanceof Array && flows.length == 1
     return new Stream(@auth, flows)
 
+  send: (subdomain, flow, message, callback) ->
+    json = JSON.stringify(message)
+    options =
+      host: FLOWDOCK_API_URL.hostname
+      port: FLOWDOCK_API_URL.port
+      path: '/flows/' + subdomain + '/' + flow + '/messages'
+      method: 'POST'
+      headers:
+        'Authorization': @auth
+        'Content-Type': 'application/json'
+        'Content-Length': json.length
+        'Accept': 'application/json'
+
+    req = httpClient.request options, (res) ->
+      if res.statusCode >= 500
+        @emit "error", res.statusCode, "Couldn't estabilish a connection to Flowdock Messages API"
+        return
+      if res.statusCode >= 400
+        @emit 'error', res.statusCode, "Couldn't post your #{data.event} to Flowdock Messages API"
+        return
+      callback res if callback
+    req.write(json)
+    req.end()
+
+  message: (subdomain, flow, message, tags) ->
+    data =
+      event: 'message'
+      content: message
+      tags: tags || []
+    @send(subdomain, flow, data)
+
+  status: (subdomain, flow, status) ->
+    data =
+      event: 'status'
+      content: status
+    @send(flow, data)
+
 class Stream extends process.EventEmitter
   constructor: (@auth, @flows) ->
     @stream = @openStream(@flows.join(','))
@@ -78,42 +115,5 @@ class Stream extends process.EventEmitter
 
   close: () ->
     @stream.abort()
-
-  message: (flow, message, tags) ->
-    data =
-      event: 'message'
-      content: message
-      tags: tags || []
-    @post(flow, data)
-
-  status: (flow, status) ->
-    data =
-      event: 'status'
-      content: status
-    @post(flow, data)
-
-  post: (flow, data) ->
-    post_data = querystring.stringify(data)
-    options =
-      host: FLOWDOCK_API_URL.hostname
-      port: FLOWDOCK_API_URL.port
-      path: '/flows/' + flow + '/messages'
-      method: 'POST'
-      headers:
-        'Authorization': @auth
-        'Content-Type': 'application/x-www-form-urlencoded'
-        'Content-Length': post_data.length
-        'Accept': 'application/json'
-
-    req = httpClient.request options, (res) ->
-      if res.statusCode >= 500
-        @emit "error", res.statusCode, "Couldn't estabilish a connection to Flowdock Messages API"
-        return
-      if res.statusCode >= 400
-        @emit 'error', res.statusCode, "Couldn't post your #{data.event} to Flowdock Messages API"
-        return
-    req.write(post_data)
-    req.end()
-
 
 exports.Session = Session
