@@ -1,7 +1,6 @@
 url         = require 'url'
 http        = require 'http'
 https       = require 'https'
-querystring = require 'querystring'
 events      = require 'events'
 
 Stream = require './stream'
@@ -35,12 +34,12 @@ class Session extends process.EventEmitter
     flows = flows[0] if flows[0] instanceof Array && flows.length == 1
     return Stream.connect @auth, flows
 
-  send: (subdomain, flow, message, callback) ->
+  send: (flow, message, callback) ->
     json = JSON.stringify(message)
     options =
       host: FLOWDOCK_API_URL.hostname
       port: FLOWDOCK_API_URL.port
-      path: '/flows/' + subdomain + '/' + flow + '/messages'
+      path: '/flows/' + flow.replace(':', '/') + '/messages'
       method: 'POST'
       headers:
         'Authorization': @auth
@@ -59,14 +58,14 @@ class Session extends process.EventEmitter
     req.write(json)
     req.end()
 
-  message: (subdomain, flow, message, tags) ->
+  message: (flow, message, tags) ->
     data =
       event: 'message'
       content: message
       tags: tags || []
-    @send(subdomain, flow, data)
+    @send(flow, data)
 
-  status: (subdomain, flow, status) ->
+  status: (flow, status) ->
     data =
       event: 'status'
       content: status
