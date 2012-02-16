@@ -1,7 +1,7 @@
 {
   "name": "flowdock",
-  "version": "0.3.0",
-  "description": "Flowdock Streaming client/API for node.js",
+  "version": "0.2.3",
+  "description": "Flowdock client/API for node.js",
   "keywords": [
     "flowdock"
   ],
