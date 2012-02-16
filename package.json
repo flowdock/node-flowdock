@@ -37,5 +37,9 @@
     "mocha": "0.10.1",
     "colors": "0.6.0-1"
   },
+  "scripts": {
+    "test": "make test",
+    "prepublish": "make build"
+  },
   "engines": { "node": ">=0.4.0" }
 }
