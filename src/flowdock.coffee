@@ -14,17 +14,7 @@ httpClient = (FLOWDOCK_API_URL.protocol == 'https' && https || http)
 class Session extends process.EventEmitter
   constructor: (@email, @password) ->
     @auth = 'Basic ' + new Buffer(@email + ':' + @password).toString('base64')
-    @_flows = []
-    @_users = []
-
   flows: (callback) ->
-    @fetchFlows (flows) =>
-      for flow in flows
-        @_users.push user for user in flow.users when !@_users.some((u) -> u.id == user.id)
-        @_flows.push flow if !@_flows.some((f) -> f.id == flow.id)
-      callback(@_flows)
-
-  fetchFlows: (callback) ->
     options =
       host: FLOWDOCK_API_URL.hostname
       port: FLOWDOCK_API_URL.port
