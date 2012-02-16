@@ -39,7 +39,7 @@ stream.on('message', function(message) {
   return stream.close();
 });
 ```
-The full message format specification for different message types is in Flowdock API Message documentation.
+The full message format specification for different message types is in [Flowdock API Message documentation](https://www.flowdock.com/api/messages).
 
 #### Set your status for a flow
 ```javascript
@@ -75,7 +75,7 @@ session.flows(function(flows) {
   });
 });
 ```
-The full message format specification for different message types is in Flowdock API Message documentation.
+The full message format specification for different message types is in [Flowdock API Message documentation](https://www.flowdock.com/api/messages).
 
 ## Development
 
