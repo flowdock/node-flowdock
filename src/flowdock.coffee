@@ -1,62 +1,61 @@
-url         = require 'url'
-http        = require 'http'
-https       = require 'https'
-events      = require 'events'
-
+url = require 'url'
+events = require 'events'
+request = require 'request'
 Stream = require './stream'
 
-FLOWDOCK_API_URL = url.parse(process.env.FLOWDOCK_API_URL || 'https://api.flowdock.com')
-httpClient = (FLOWDOCK_API_URL.protocol == 'https' && https || http)
+baseURL = ->
+  url.parse(process.env.FLOWDOCK_API_URL || 'https://api.flowdock.com')
 
 class Session extends process.EventEmitter
   constructor: (@email, @password) ->
     @auth = 'Basic ' + new Buffer(@email + ':' + @password).toString('base64')
   flows: (callback) ->
+    uri = baseURL()
+    uri.path = '/flows?users=1'
+
     options =
-      host: FLOWDOCK_API_URL.hostname
-      port: FLOWDOCK_API_URL.port
-      path: '/flows?users=1'
+      uri: uri
       method: 'GET'
       headers:
         'Authorization': @auth
         'Accept': 'application/json'
 
-    request = httpClient.get options, (res) ->
-      data = ""
-      res.on "data", (chunk) ->
-        data += chunk
-      res.on "end", ->
-        flows = JSON.parse(data.toString("utf8"))
-        callback(flows)
-    request.end()
+    request options, (error, res, body) =>
+      if error
+        @emit 'error', 'Couldn\'t connect to Flowdock'
+        return
+      if res.statusCode > 300
+        @emit 'error', res.statusCode
+        return
+
+      flows = JSON.parse(body.toString("utf8"))
+      callback(flows)
 
   stream: (flows...) ->
     flows = flows[0] if flows[0] instanceof Array && flows.length == 1
     return Stream.connect @auth, flows
 
   send: (flow, message, callback) ->
-    json = JSON.stringify(message)
+    uri = baseURL()
+    uri.path = "/flows/#{flow.replace ':', '/'}/messages"
+
     options =
-      host: FLOWDOCK_API_URL.hostname
-      port: FLOWDOCK_API_URL.port
-      path: '/flows/' + flow.replace(':', '/') + '/messages'
+      uri: uri
       method: 'POST'
+      json: message
       headers:
         'Authorization': @auth
-        'Content-Type': 'application/json'
-        'Content-Length': json.length
         'Accept': 'application/json'
 
-    req = httpClient.request options, (res) ->
-      if res.statusCode >= 500
-        @emit "error", res.statusCode, "Couldn't estabilish a connection to Flowdock Messages API"
+    request options, (error, res, body) =>
+      if error
+        @emit 'error', 'Couldn\'t connect to Flowdock'
         return
-      if res.statusCode >= 400
-        @emit 'error', res.statusCode, "Couldn't post your #{data.event} to Flowdock Messages API"
+      else if res.statusCode >= 300
+        @emit 'error', res.statusCode
         return
+
       callback res if callback
-    req.write(json)
-    req.end()
 
   message: (flow, message, tags) ->
     data =

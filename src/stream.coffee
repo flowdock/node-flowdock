@@ -1,21 +1,27 @@
 BufferParser = require('./buffer_parser')
 url = require 'url'
 
-FLOWDOCK_STREAM_URL = url.parse(process.env.FLOWDOCK_STREAM_URL || 'https://stream.flowdock.com')
-http = require(FLOWDOCK_STREAM_URL.protocol == 'https' && 'https' || 'http')
+baseURL = ->
+  url.parse(process.env.FLOWDOCK_STREAM_URL || 'https://stream.flowdock.com')
 
 class Stream extends process.EventEmitter
   constructor: (@auth, @flows) ->
 
   connect: ->
+    uri = baseURL()
     options =
-      host: FLOWDOCK_STREAM_URL.hostname
-      port: FLOWDOCK_STREAM_URL.port
+      host: uri.hostname
+      port: uri.port
       path: '/flows?filter=' + @flows.join(',')
       method: 'GET'
       headers:
         'Authorization': @auth
         'Accept': 'application/json'
+
+    http = if uri.protocol == 'http:'
+      require 'http'
+    else
+      require 'https'
 
     @request = http.get options, (res) =>
       parser = new BufferParser()
