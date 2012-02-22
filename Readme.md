@@ -1,4 +1,4 @@
-# node-flowdock
+# node-flowdock [![Build Status](https://secure.travis-ci.org/flowdock/node-flowdock.png?branch=master)](http://travis-ci.org/flowdock/node-flowdock)
 
 Flowdock Streaming client for node.js. Listen to messages from Flowdock in real-time and post new messages.
 
