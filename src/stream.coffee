@@ -32,6 +32,8 @@ class Stream extends process.EventEmitter
         parser.on 'end', =>
           @emit 'end'
         @request.pipe parser
+    @request.on 'error', (error) =>
+      @emit 'error', 0
 
   close: ->
     @request.abort() if @request

@@ -21,6 +21,13 @@ describe 'Stream', ->
     beforeEach ->
       process.env.FLOWDOCK_STREAM_URL = "http://localhost:#{mockdock.port}"
 
+    it 'emits error if connection cannot be established', (done) ->
+      process.env.FLOWDOCK_STREAM_URL = "http://localhost:#{mockdock.port + 1}"
+      stream = Stream.connect('foobar', ['example:main'])
+      stream.on 'error', (status, message) ->
+        assert.equal status, 0
+        done()
+
     it 'emits error event if response is not successful', (done) ->
       mockdock.once 'request', (req, res) ->
         res.writeHead 401
