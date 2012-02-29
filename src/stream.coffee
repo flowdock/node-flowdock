@@ -1,4 +1,4 @@
-BufferParser = require('./buffer_parser')
+JSONStream = require('./json_stream')
 url = require 'url'
 
 baseURL = ->
@@ -24,7 +24,8 @@ class Stream extends process.EventEmitter
       require 'https'
 
     @request = http.get options, (res) =>
-      parser = new BufferParser()
+      parser = new JSONStream()
+
       if res.statusCode >= 500
         @emit "error", res.statusCode, "Streaming connection failed"
         return
@@ -32,10 +33,11 @@ class Stream extends process.EventEmitter
         @emit "error", res.statusCode, "Access denied"
         return
 
+      parser.on 'data', (message) =>
+        @emit 'message', message
+
       res.on "data", (data) =>
-        messages = parser.parse(data)
-        for message in messages
-          @emit 'message', message
+        parser.write data
       res.on "close", =>
         @emit "close"
       res.on "end", =>
