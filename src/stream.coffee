@@ -5,10 +5,26 @@ JSONStream = require('./json_stream')
 baseURL = ->
   url.parse(process.env.FLOWDOCK_STREAM_URL || 'https://stream.flowdock.com/flows')
 
+backoff = (backoff, errors, operator = '*') ->
+  Math.min(
+    backoff.max,
+    (if operator == '+'
+      errors
+    else
+      Math.pow 2, errors - 1) * backoff.delay
+  )
+
 class Stream extends process.EventEmitter
   constructor: (@auth, @flows) ->
+    @networkErrors = 0
+    @responseErrors = 0
+    @on 'reconnecting', (timeout) =>
+      setTimeout =>
+        @connect()
+      , timeout
 
   connect: ->
+    return if @disconnecting
     uri = baseURL()
     uri.qs =
       filter: @flows.join ','
@@ -20,27 +36,61 @@ class Stream extends process.EventEmitter
         'Authorization': @auth
         'Accept': 'application/json'
 
+    errorHandler = (error) =>
+      @networkErrors += 1
+      @emit 'clientError', 0, 'Network error'
+      @emit 'reconnecting', (backoff Stream.backoff.network, @networkErrors, '+')
+
     @request = request(options).on 'response', (response) =>
-      if response.statusCode >= 500
-        @emit 'error', response.statusCode
-      else if response.statusCode >= 401
-        @emit 'error', response.statusCode
+      @request.removeListener 'error', errorHandler
+
+      @networkErrors = 0
+      if response.statusCode >= 400
+        @responseErrors += 1
+        @emit 'clientError', response.statusCode
+        @emit 'reconnecting', (backoff Stream.backoff.error, @responseErrors, '*')
       else
+        @responseErrors = 0
         parser = new JSONStream()
         parser.on 'data', (message) =>
           @emit 'message', message
-        parser.on 'end', =>
-          @emit 'end'
-        @request.pipe parser
-    @request.on 'error', (error) =>
-      @emit 'error', 0
 
-  close: ->
-    @request.abort() if @request
+        @request.on 'abort', =>
+          parser.removeAllListeners()
+          @emit 'disconnected'
+          @emit 'end'
+
+        parser.on 'end', =>
+          parser.removeAllListeners()
+          @emit 'disconnected'
+          @emit 'clientError', 0, 'Disconnected'
+          @emit 'reconnecting', 0 
+
+        @request.pipe parser
+        @emit 'connected'
+    @request.once 'error', errorHandler
+    @request
+
+  end: ->
+    @disconnecting = true
+    if @request
+      @request.abort()
+      @request.removeAllListeners()
+      @request = undefined
+
 
 Stream.connect = (auth, flows) ->
   stream = new Stream(auth, flows)
   stream.connect()
   stream
+
+
+Stream.backoff =
+  network:
+    delay: 200
+    max: 10000
+  error:
+    delay: 2000
+    max: 120000
 
 module.exports = Stream
