@@ -24,7 +24,7 @@ var session = new Session(username, password);
 var stream = session.stream('example/main');
 stream.end();
 ```
-The argument(s) for stream() can be a string ('subdomain/flow'), an array (['subdomain/flow', 'subdomain/anotherflow']) or a list of strings ('subdomain/flow', 'subdomain/anotherflow').
+The argument(s) for stream() can be a string ('subdomain/flow') or an array (['subdomain/flow', 'subdomain/anotherflow']).
 
 session.stream() returns an instance of EventEmitter. Currently it emits two types of events:
 

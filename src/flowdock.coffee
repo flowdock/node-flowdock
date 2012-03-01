@@ -2,6 +2,7 @@ url = require 'url'
 events = require 'events'
 request = require 'request'
 Stream = require './stream'
+util = require 'util'
 
 baseURL = ->
   url.parse(process.env.FLOWDOCK_API_URL || 'https://api.flowdock.com')
@@ -33,10 +34,13 @@ class Session extends process.EventEmitter
 
   # Start streaming flows given as argument using authentication credentials
   #
+  # flows - Flow id (String <subdomain>:<flow> or <subdomain>/</flow>) or array of flow ids
+  # options - query string hash
+  #
   # Returns Stream object
-  stream: (flows...) ->
-    flows = flows[0] if flows[0] instanceof Array && flows.length == 1
-    return Stream.connect @auth, flows
+  stream: (flows, options = {}) ->
+    flows = [flows] unless util.isArray(flows)
+    Stream.connect @auth, flows, options
 
   # Send message to flowdock
   send: (flow, message, callback) ->
