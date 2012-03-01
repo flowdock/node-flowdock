@@ -28,8 +28,8 @@ class Session extends process.EventEmitter
         @emit 'error', res.statusCode
         return
 
-      flows = JSON.parse(body.toString("utf8"))
-      callback(flows)
+      flows = JSON.parse body.toString("utf8")
+      callback flows
 
   stream: (flows...) ->
     flows = flows[0] if flows[0] instanceof Array && flows.length == 1
@@ -62,14 +62,12 @@ class Session extends process.EventEmitter
       event: 'message'
       content: message
       tags: tags || []
-    @send(flow, data)
+    @send flow, data
 
   status: (flow, status) ->
     data =
       event: 'status'
       content: status
-    @send(flow, data)
-
-
+    @send flow, data
 
 exports.Session = Session

@@ -4,8 +4,8 @@ stream = require 'stream'
 # Carriage-return delimited stream of JSON objects
 class JSONStream extends stream.Stream
   LF = "\r\n"
-  constructor: () ->
-    @buffer = new Buffer(0)
+  constructor: ->
+    @buffer = new Buffer 0
     @writable = true
 
   write: (chunk, encoding) ->

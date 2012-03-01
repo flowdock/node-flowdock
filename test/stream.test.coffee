@@ -1,6 +1,6 @@
 assert = require 'assert'
 http = require 'http'
-Stream = require(__dirname + '/../src/stream')
+Stream = require __dirname + '/../src/stream'
 
 # Fake Flowdock Streaming API, do whatever you want
 class Mockdock extends process.EventEmitter
@@ -12,7 +12,7 @@ class Mockdock extends process.EventEmitter
 
 ephemeralPort = ->
   range = [49152..65535]
-  range[Math.floor(Math.random() * range.length)]
+  range[Math.floor Math.random() * range.length]
 
 describe 'Stream', ->
   mockdock = new Mockdock(ephemeralPort())
@@ -30,21 +30,21 @@ describe 'Stream', ->
         assert req.url.indexOf('example%3Amain') > 0
         assert req.url.indexOf('example%3Atest') > 0
         done()
-      stream = Stream.connect('foobar', ['example:main', 'example:test'])
+      stream = Stream.connect 'foobar', ['example:main', 'example:test']
 
     it 'has authentication header', (done) ->
       mockdock.on 'request', (req, res) ->
         stream.end()
         assert.equal req.headers.authorization, 'foobar'
         done()
-      stream = Stream.connect('foobar', ['example:main', 'example:test'])
+      stream = Stream.connect 'foobar', ['example:main', 'example:test']
 
     it 'can set extra parameters', (done) ->
       mockdock.on 'request', (req, res) ->
         stream.end()
         assert req.url.indexOf('active=true') > 0
         done()
-      stream = Stream.connect('foobar', ['example:main'], active: true)
+      stream = Stream.connect 'foobar', ['example:main'], active: true
 
   describe 'response', ->
     it 'emits error if connection cannot be established', (done) ->
@@ -60,7 +60,7 @@ describe 'Stream', ->
         res.writeHead 401
         res.end()
   
-      stream = Stream.connect('foobar', ['example:main'])
+      stream = Stream.connect 'foobar', ['example:main']
       stream.on 'clientError', (status, message) ->
         stream.end()
         assert.equal status, 401
@@ -71,7 +71,7 @@ describe 'Stream', ->
         res.writeHead 200
         res.write '\n'
 
-      stream = Stream.connect('foobar', ['example:main'])
+      stream = Stream.connect 'foobar', ['example:main']
       stream.on 'connected', ->
         stream.end()
       stream.on 'end', ->
@@ -102,7 +102,7 @@ describe 'Stream', ->
         res.write '\n'
         res.end()
 
-      stream = Stream.connect('foobar', ['example:main'])
+      stream = Stream.connect 'foobar', ['example:main']
       stream.once 'reconnecting', (timeout) ->
         stream.end()
         assert.equal timeout, 0
@@ -110,7 +110,7 @@ describe 'Stream', ->
 
     it 'reconnects after small delay if network error', (done) ->
       process.env.FLOWDOCK_STREAM_URL = "http://localhost:#{mockdock.port + 1}"
-      stream = Stream.connect('foobar', ['example:main'])
+      stream = Stream.connect 'foobar', ['example:main']
       stream.once 'reconnecting', (timeout) ->
         stream.end()
         assert.equal timeout, 200
@@ -118,7 +118,7 @@ describe 'Stream', ->
 
     it 'backs off linearly if there are network errors', (done) ->
       process.env.FLOWDOCK_STREAM_URL = "http://localhost:#{mockdock.port + 1}"
-      stream = Stream.connect('foobar', ['example:main'])
+      stream = Stream.connect 'foobar', ['example:main']
       stream.networkErrors = 2
       stream.once 'reconnecting', (timeout) ->
         stream.end()
@@ -131,7 +131,7 @@ describe 'Stream', ->
         res.writeHead 503
         res.end()
 
-      stream = Stream.connect('foobar', ['example:main'])
+      stream = Stream.connect 'foobar', ['example:main']
       stream.once 'reconnecting', (timeout) ->
         stream.end()
         assert.equal timeout, 2000
@@ -142,7 +142,7 @@ describe 'Stream', ->
         res.writeHead 503
         res.end()
 
-      stream = Stream.connect('foobar', ['example:main'])
+      stream = Stream.connect 'foobar', ['example:main']
       stream.responseErrors = 2
       stream.once 'reconnecting', (timeout) ->
         stream.end()

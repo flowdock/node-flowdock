@@ -1,6 +1,6 @@
 url = require 'url'
 request = require 'request'
-JSONStream = require('./json_stream')
+JSONStream = require './json_stream'
 
 baseURL = ->
   url.parse(process.env.FLOWDOCK_STREAM_URL || 'https://stream.flowdock.com/flows')
@@ -86,7 +86,7 @@ class Stream extends process.EventEmitter
 
 
 Stream.connect = (auth, flows, params) ->
-  stream = new Stream(auth, flows, params)
+  stream = new Stream auth, flows, params
   stream.connect()
   stream
 

@@ -1,7 +1,7 @@
 assert = require 'assert'
-JSONStream = require(__dirname + '/../src/json_stream')
+JSONStream = require __dirname + '/../src/json_stream'
 
-describe 'JSONStream', () ->
+describe 'JSONStream', ->
   parser = null
   beforeEach ->
     parser = new JSONStream()
