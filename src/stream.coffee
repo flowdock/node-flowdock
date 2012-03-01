@@ -15,7 +15,7 @@ backoff = (backoff, errors, operator = '*') ->
   )
 
 class Stream extends process.EventEmitter
-  constructor: (@auth, @flows) ->
+  constructor: (@auth, @flows, @params = {}) ->
     @networkErrors = 0
     @responseErrors = 0
     @on 'reconnecting', (timeout) =>
@@ -25,23 +25,13 @@ class Stream extends process.EventEmitter
 
   connect: ->
     return if @disconnecting
-    uri = baseURL()
-    uri.qs =
-      filter: @flows.join ','
-
-    options =
-      uri: uri
-      method: 'GET'
-      headers:
-        'Authorization': @auth
-        'Accept': 'application/json'
 
     errorHandler = (error) =>
       @networkErrors += 1
       @emit 'clientError', 0, 'Network error'
       @emit 'reconnecting', (backoff Stream.backoff.network, @networkErrors, '+')
 
-    @request = request(options).on 'response', (response) =>
+    @request = request(@options()).on 'response', (response) =>
       @request.removeListener 'error', errorHandler
 
       @networkErrors = 0
@@ -71,6 +61,19 @@ class Stream extends process.EventEmitter
     @request.once 'error', errorHandler
     @request
 
+  options: ->
+    options =
+      uri: baseURL()
+      qs: filter: @flows.join ','
+      method: 'GET'
+      headers:
+        'Authorization': @auth
+        'Accept': 'application/json'
+
+    for key, value of @params
+      options.qs[key] = value
+    options
+
   end: ->
     @disconnecting = true
     if @request
@@ -82,8 +85,8 @@ class Stream extends process.EventEmitter
     @end()
 
 
-Stream.connect = (auth, flows) ->
-  stream = new Stream(auth, flows)
+Stream.connect = (auth, flows, params) ->
+  stream = new Stream(auth, flows, params)
   stream.connect()
   stream
 

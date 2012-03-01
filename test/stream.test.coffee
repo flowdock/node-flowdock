@@ -23,6 +23,29 @@ describe 'Stream', ->
   afterEach ->
     mockdock.removeAllListeners()
 
+  describe 'url', ->
+    it 'has flows as query param', (done) ->
+      mockdock.on 'request', (req, res) ->
+        stream.end()
+        assert req.url.indexOf('example%3Amain') > 0
+        assert req.url.indexOf('example%3Atest') > 0
+        done()
+      stream = Stream.connect('foobar', ['example:main', 'example:test'])
+
+    it 'has authentication header', (done) ->
+      mockdock.on 'request', (req, res) ->
+        stream.end()
+        assert.equal req.headers.authorization, 'foobar'
+        done()
+      stream = Stream.connect('foobar', ['example:main', 'example:test'])
+
+    it 'can set extra parameters', (done) ->
+      mockdock.on 'request', (req, res) ->
+        stream.end()
+        assert req.url.indexOf('active=true') > 0
+        done()
+      stream = Stream.connect('foobar', ['example:main'], active: true)
+
   describe 'response', ->
     it 'emits error if connection cannot be established', (done) ->
       process.env.FLOWDOCK_STREAM_URL = "http://localhost:#{mockdock.port + 1}"
