@@ -23,6 +23,9 @@ class Stream extends process.EventEmitter
         @connect()
       , timeout
 
+  # Start new connection to Flowdock API
+  #
+  # Returns request object
   connect: ->
     return if @disconnecting
 
@@ -61,6 +64,7 @@ class Stream extends process.EventEmitter
     @request.once 'error', errorHandler
     @request
 
+  # Generate request options
   options: ->
     options =
       uri: baseURL()
@@ -74,6 +78,7 @@ class Stream extends process.EventEmitter
       options.qs[key] = value
     options
 
+  # Stop streaming
   end: ->
     @disconnecting = true
     if @request
@@ -84,7 +89,7 @@ class Stream extends process.EventEmitter
     console.warn 'DEPRECATED, use Stream#end() instead'
     @end()
 
-
+# Connect to flows
 Stream.connect = (auth, flows, params) ->
   stream = new Stream auth, flows, params
   stream.connect()

@@ -31,10 +31,14 @@ class Session extends process.EventEmitter
       flows = JSON.parse body.toString("utf8")
       callback flows
 
+  # Start streaming flows given as argument using authentication credentials
+  #
+  # Returns Stream object
   stream: (flows...) ->
     flows = flows[0] if flows[0] instanceof Array && flows.length == 1
     return Stream.connect @auth, flows
 
+  # Send message to flowdock
   send: (flow, message, callback) ->
     uri = baseURL()
     uri.path = "/flows/#{flow.replace ':', '/'}/messages"
@@ -57,6 +61,7 @@ class Session extends process.EventEmitter
 
       callback res if callback
 
+  # Send a chat message to flowdock
   message: (flow, message, tags) ->
     data =
       event: 'message'
@@ -64,6 +69,7 @@ class Session extends process.EventEmitter
       tags: tags || []
     @send flow, data
 
+  # Change status on Flowdock
   status: (flow, status) ->
     data =
       event: 'status'

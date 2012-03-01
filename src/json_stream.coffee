@@ -8,6 +8,9 @@ class JSONStream extends stream.Stream
     @buffer = new Buffer 0
     @writable = true
 
+  # Handle chunk, emit event for all completed chunks
+  #
+  # Returns true
   write: (chunk, encoding) ->
     # typecast to Buffer
     input = Buffer.isBuffer(chunk) && chunk || new Buffer(chunk, encoding)
@@ -21,6 +24,8 @@ class JSONStream extends stream.Stream
       @buffer = new Buffer @buffer.slice(index + LF.length)
       @emit 'data', JSON.parse(ret.toString('utf8')) # TODO: 4-byte UTF-8 character handling
     true
+
+  # Close writable stream, forward end event
   end: ->
     @writable = false
     @emit 'end'
