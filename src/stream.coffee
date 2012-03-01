@@ -77,6 +77,9 @@ class Stream extends process.EventEmitter
       @request.abort()
       @request.removeAllListeners()
       @request = undefined
+  close: ->
+    console.warn 'DEPRECATED, use Stream#end() instead'
+    @end()
 
 
 Stream.connect = (auth, flows) ->
