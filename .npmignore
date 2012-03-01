@@ -1,3 +1,5 @@
 node_modules/*
+src/*
+Makefile
 test/*
 .travis.yml

@@ -30,17 +30,17 @@
   },
   "os": [ "linux", "darwin" ],
   "dependencies": {
-    "coffee-script": ">=1.2.0",
     "buffertools": "1.0.7",
     "request": "2.9.152"
   },
   "devDependencies": {
+    "coffee-script": ">=1.2.0",
     "mocha": "0.10.1",
     "colors": "0.6.0-1"
   },
   "scripts": {
-    "install": "make build",
-    "test": "make test"
+    "test": "make test",
+    "prepublish": "make build"
   },
   "engines": { "node": ">=0.4.0" }
 }
