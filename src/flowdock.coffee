@@ -2,6 +2,7 @@ url = require 'url'
 events = require 'events'
 request = require 'request'
 Stream = require './stream'
+util = require 'util'
 
 baseURL = ->
   url.parse(process.env.FLOWDOCK_API_URL || 'https://api.flowdock.com')
@@ -28,13 +29,20 @@ class Session extends process.EventEmitter
         @emit 'error', res.statusCode
         return
 
-      flows = JSON.parse(body.toString("utf8"))
-      callback(flows)
+      flows = JSON.parse body.toString("utf8")
+      callback flows
 
-  stream: (flows...) ->
-    flows = flows[0] if flows[0] instanceof Array && flows.length == 1
-    return Stream.connect @auth, flows
+  # Start streaming flows given as argument using authentication credentials
+  #
+  # flows - Flow id (String <subdomain>:<flow> or <subdomain>/</flow>) or array of flow ids
+  # options - query string hash
+  #
+  # Returns Stream object
+  stream: (flows, options = {}) ->
+    flows = [flows] unless util.isArray(flows)
+    Stream.connect @auth, flows, options
 
+  # Send message to flowdock
   send: (flow, message, callback) ->
     uri = baseURL()
     uri.path = "/flows/#{flow.replace ':', '/'}/messages"
@@ -57,19 +65,19 @@ class Session extends process.EventEmitter
 
       callback res if callback
 
+  # Send a chat message to flowdock
   message: (flow, message, tags) ->
     data =
       event: 'message'
       content: message
       tags: tags || []
-    @send(flow, data)
+    @send flow, data
 
+  # Change status on Flowdock
   status: (flow, status) ->
     data =
       event: 'status'
       content: status
-    @send(flow, data)
-
-
+    @send flow, data
 
 exports.Session = Session

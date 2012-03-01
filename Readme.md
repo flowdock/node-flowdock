@@ -22,9 +22,9 @@ var Session = require('./flowdock').Session;
 
 var session = new Session(username, password);
 var stream = session.stream('example/main');
-stream.close();
+stream.end();
 ```
-The argument(s) for stream() can be a string ('subdomain/flow'), an array (['subdomain/flow', 'subdomain/anotherflow']) or a list of strings ('subdomain/flow', 'subdomain/anotherflow').
+The argument(s) for stream() can be a string ('subdomain/flow') or an array (['subdomain/flow', 'subdomain/anotherflow']).
 
 session.stream() returns an instance of EventEmitter. Currently it emits two types of events:
 
@@ -36,7 +36,7 @@ session.stream() returns an instance of EventEmitter. Currently it emits two typ
 stream = session.stream(flow);
 stream.on('message', function(message) {
   // Do stuff with message
-  return stream.close();
+  return stream.end();
 });
 ```
 The full message format specification for different message types is in [Flowdock API Message documentation](https://www.flowdock.com/api/messages).
@@ -51,7 +51,7 @@ Both arguments should be strings. Setting a status is flow specific.
 ```javascript
 session.message('example:main', 'Isn\'t this cool?');
 ```
-Both arguments should be strings. Sending a message is flow specific.
+Both arguments should be strings. Ssing a message is flow specific.
 
 #### Fetch and stream all the flows your user has an access
 
