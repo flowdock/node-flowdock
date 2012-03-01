@@ -25,24 +25,24 @@ describe 'Stream', ->
 
   describe 'url', ->
     it 'has flows as query param', (done) ->
-      mockdock.on 'request', (req, res) ->
+      mockdock.once 'request', (req, res) ->
         stream.end()
-        assert req.url.indexOf('example%3Amain') > 0
-        assert req.url.indexOf('example%3Atest') > 0
+        assert.ok req.url.indexOf('example%3Amain') > 0
+        assert.ok req.url.indexOf('example%3Atest') > 0
         done()
       stream = Stream.connect 'foobar', ['example:main', 'example:test']
 
     it 'has authentication header', (done) ->
-      mockdock.on 'request', (req, res) ->
+      mockdock.once 'request', (req, res) ->
         stream.end()
         assert.equal req.headers.authorization, 'foobar'
         done()
       stream = Stream.connect 'foobar', ['example:main', 'example:test']
 
     it 'can set extra parameters', (done) ->
-      mockdock.on 'request', (req, res) ->
+      mockdock.once 'request', (req, res) ->
         stream.end()
-        assert req.url.indexOf('active=true') > 0
+        assert.ok req.url.indexOf('active=true') > 0
         done()
       stream = Stream.connect 'foobar', ['example:main'], active: true
 
@@ -56,29 +56,29 @@ describe 'Stream', ->
         done()
 
     it 'emits error event if response is not successful', (done) ->
-      mockdock.on 'request', (req, res) ->
+      mockdock.once 'request', (req, res) ->
         res.writeHead 401
         res.end()
   
       stream = Stream.connect 'foobar', ['example:main']
-      stream.on 'clientError', (status, message) ->
+      stream.once 'clientError', (status, message) ->
         stream.end()
         assert.equal status, 401
         done()
 
     it 'emits end when response ends', (done) ->
-      mockdock.on 'request', (req, res) ->
+      mockdock.once 'request', (req, res) ->
         res.writeHead 200
         res.write '\n'
 
       stream = Stream.connect 'foobar', ['example:main']
-      stream.on 'connected', ->
+      stream.once 'connected', ->
         stream.end()
-      stream.on 'end', ->
+      stream.once 'end', ->
         done()
 
     it 'emits messages', (done) ->
-      mockdock.on 'request', (req, res) ->
+      mockdock.once 'request', (req, res) ->
         res.writeHead 200
         res.write JSON.stringify(
           id: 1
@@ -97,7 +97,7 @@ describe 'Stream', ->
 
   describe 'reconnection', ->
     it 'reconnects immediately after connection ends', (done) ->
-      mockdock.on 'request', (req, res) ->
+      mockdock.once 'request', (req, res) ->
         res.writeHead 200
         res.write '\n'
         res.end()
@@ -127,7 +127,7 @@ describe 'Stream', ->
 
 
     it 'reconnects after delay if server responds with error', (done) ->
-      mockdock.on 'request', (req, res) ->
+      mockdock.once 'request', (req, res) ->
         res.writeHead 503
         res.end()
 

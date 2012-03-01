@@ -8,12 +8,12 @@ describe 'JSONStream', ->
 
   it 'does not emit on newline', ->
     parser.on 'data', (message) ->
-      assert false, 'unexpected message was emitted'
+      assert.ok false, 'unexpected message was emitted'
     parser.write(Buffer '\n')
 
   it 'does not emit partial message', ->
     parser.on 'data', (message) ->
-      assert false, parser.write(new Buffer "{")
+      assert.ok false, parser.write(new Buffer "{")
     parser.write(Buffer '{')
 
   it 'emits when chunk contains JSON', ->
@@ -22,7 +22,7 @@ describe 'JSONStream', ->
       assert.deepEqual message, {}
       messages += 1
     parser.write '{}\r\n'
-    assert messages, 1, 'message was not emitted'
+    assert.equal messages, 1, 'message was not emitted'
 
   it 'emits multiple messages from one chunk', ->
     messages = 0
