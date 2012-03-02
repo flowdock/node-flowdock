@@ -21,7 +21,7 @@
   "repositories": [
     {
       "type": "git",
-      "url": "git://github.com/flowdock/node-flowdock.git"
+      "url": "http://github.com/flowdock/node-flowdock.git"
     }
   ],
   "main": "index",
