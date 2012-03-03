@@ -2,7 +2,6 @@ url = require 'url'
 events = require 'events'
 request = require 'request'
 Stream = require './stream'
-util = require 'util'
 
 baseURL = ->
   url.parse(process.env.FLOWDOCK_API_URL || 'https://api.flowdock.com')
@@ -39,7 +38,7 @@ class Session extends process.EventEmitter
   #
   # Returns Stream object
   stream: (flows, options = {}) ->
-    flows = [flows] unless util.isArray(flows)
+    flows = [flows] unless Array.isArray(flows)
     Stream.connect @auth, flows, options
 
   # Send message to flowdock

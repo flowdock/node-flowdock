@@ -1,21 +1,9 @@
 assert = require 'assert'
-http = require 'http'
 Stream = require __dirname + '/../src/stream'
-
-# Fake Flowdock Streaming API, do whatever you want
-class Mockdock extends process.EventEmitter
-  request: (req, res) =>
-    @emit 'request', req, res
-  constructor: (@port) ->
-    server = http.createServer @request
-    server.listen(@port)
-
-ephemeralPort = ->
-  range = [49152..65535]
-  range[Math.floor Math.random() * range.length]
+Mockdock = require('./helper').Mockdock
 
 describe 'Stream', ->
-  mockdock = new Mockdock(ephemeralPort())
+  mockdock = Mockdock.start()
 
   beforeEach ->
     process.env.FLOWDOCK_STREAM_URL = "http://localhost:#{mockdock.port}"
