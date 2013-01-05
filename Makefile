@@ -2,7 +2,7 @@ build:
 	mkdir -p lib && ./node_modules/.bin/coffee -c -o lib src
 
 test:
-	./node_modules/.bin/_mocha --reporter spec
+	./node_modules/.bin/_mocha --compilers coffee:coffee-script --reporter spec
 
 clean:
 	rm -r lib
