@@ -28,7 +28,6 @@
   "directories": {
     "lib": "./lib"
   },
-  "os": [ "linux", "darwin" ],
   "dependencies": {
     "buffertools": "1.0.7",
     "request": "2.9.152"
