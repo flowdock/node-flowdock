@@ -65,12 +65,13 @@ class Session extends process.EventEmitter
       callback res if callback
 
   # Send a chat message to flowdock
-  message: (flow, message, tags) ->
+  message: (flow, message, tags, callback) ->
     data =
       event: 'message'
       content: message
       tags: tags || []
-    @send flow, data
+    @send flow, data, callback
+
 
   # Change status on Flowdock
   status: (flow, status) ->
