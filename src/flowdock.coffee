@@ -3,8 +3,15 @@ events = require 'events'
 request = require 'request'
 Stream = require './stream'
 
+extend = (objects...) ->
+  result = {}
+  for object in objects
+    for key, value of object
+      result[key] = value
+  result
+
 baseURL = ->
-  url.parse(process.env.FLOWDOCK_API_URL || 'https://api.flowdock.com')
+  uri = url.parse(process.env.FLOWDOCK_API_URL || 'https://api.flowdock.com')
 
 class Session extends process.EventEmitter
   constructor: (@email, @password) ->
@@ -44,12 +51,11 @@ class Session extends process.EventEmitter
   # Send message to flowdock
   send: (flow, message, callback) ->
     uri = baseURL()
-    uri.path = "/flows/#{flow.replace ':', '/'}/messages"
-
+    uri.path = '/messages'
     options =
       uri: uri
       method: 'POST'
-      json: message
+      json: extend(message, flow: flow.replace('/', ':'))
       headers:
         'Authorization': @auth
         'Accept': 'application/json'
