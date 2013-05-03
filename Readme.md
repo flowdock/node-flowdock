@@ -51,7 +51,13 @@ Both arguments should be strings. Setting a status is flow specific.
 ```javascript
 session.message('example:main', 'Isn\'t this cool?');
 ```
-Both arguments should be strings. Ssing a message is flow specific.
+Both arguments should be strings. Sending a message is flow specific.
+
+#### Post a chat message to a private chat
+```javascript
+session.privateMessage(12345, 'Hi, this is a secret message!');
+```
+The first argument is the recipient's ID.
 
 #### Fetch and stream all the flows your user has an access
 
