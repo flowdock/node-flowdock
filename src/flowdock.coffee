@@ -48,14 +48,14 @@ class Session extends process.EventEmitter
     flows = [flows] unless Array.isArray(flows)
     Stream.connect @auth, flows, options
 
-  # Send message to flowdock
-  send: (flow, message, callback) ->
+  # Send message to Flowdock
+  send: (path, message, callback) ->
     uri = baseURL()
-    uri.path = '/messages'
+    uri.path = path
     options =
       uri: uri
       method: 'POST'
-      json: extend(message, flow: flow.replace('/', ':'))
+      json: message
       headers:
         'Authorization': @auth
         'Accept': 'application/json'
@@ -70,14 +70,22 @@ class Session extends process.EventEmitter
 
       callback res if callback
 
-  # Send a chat message to flowdock
+  # Send a chat message to Flowdock
   message: (flow, message, tags, callback) ->
+    data =
+      flow: flow
+      event: 'message'
+      content: message
+      tags: tags || []
+    @send "/messages", data, callback
+
+  # Send a private message to Flowdock
+  privateMessage: (userId, message, tags, callback) ->
     data =
       event: 'message'
       content: message
       tags: tags || []
-    @send flow, data, callback
-
+    @send "/private/#{userId}/messages", data, callback
 
   # Change status on Flowdock
   status: (flow, status) ->
