@@ -14,17 +14,38 @@ or
 
 ## Example usage
 
-Flows are stringly typed. Either subdomain:flow or subdomain/flow can be used. This may change in future versions.
+#### Credentials
+
+Flowdock node library supports both authenticating using [api token](http://www.flowdock.com/account/tokens) or username and password.
+
+```
+var Session = require('flowdock').Session;
+// For api token auth...
+var s = new Session('deadbeefacdcabbacd')
+
+// ...or using email/password combination
+var s = new Session('user@example.com', 'mypassword')
+```
+
+#### Flow ids
+
+Flow id's are strings and should be considered opaque identifiers. Some older flows still have an id that looks human readable, but you should not try to parse any information from that, since it might not be accurate anymore. If you need to [create url's](https://flowdock.com/api/rest#/url-breakdown), use `flow.parameterized_name` and `flow.organization.parameterized_name`.
 
 #### Opening and closing a stream
 ```javascript
-var Session = require('./flowdock').Session;
+var Session = require('flowdock').Session;
 
-var session = new Session(username, password);
-var stream = session.stream('example/main');
+var session = new Session(email, password);
+var stream = session.stream('6f67fd0b-b764-4661-9e53-c38293d1e997');
 stream.end();
 ```
-The argument(s) for stream() can be a string ('subdomain/flow') or an array (['subdomain/flow', 'subdomain/anotherflow']).
+The argument(s) for stream() can be a string (`'6f67fd0b-b764-4661-9e53-c38293d1e997'`) or an array (`['6f67fd0b-b764-4661-9e53-c38293d1e997', 'ba0a8850-bb05-42c4-a215-16bfece679e8']`).
+
+The second parameter can be used to add parameters to the streaming url, so you can for example subscribe to private messages. See [Flowdock streaming api documentation](https://www.flowdock.com/api/streaming) for instructions on available parameters.
+
+```javascript
+var streamWithPrivates = session.stream('6f67fd0b-b764-4661-9e53-c38293d1e997', {user: 1, active: 'idle'});
+```
 
 session.stream() returns an instance of EventEmitter. Currently it emits two types of events:
 
@@ -33,7 +54,7 @@ session.stream() returns an instance of EventEmitter. Currently it emits two typ
 
 #### Listen to messages
 ```javascript
-stream = session.stream(flow);
+stream = session.stream(flowId);
 stream.on('message', function(message) {
   // Do stuff with message
   return stream.end();
@@ -41,17 +62,27 @@ stream.on('message', function(message) {
 ```
 The full message format specification for different message types is in [Flowdock API Message documentation](https://www.flowdock.com/api/messages).
 
+### Sending messages
+
+Session has several methods to send messages to Flowdock. All methods except `status` support adding tags to the messages too. You can optionally supply a callback as the last parameter, that gets the created message and the response as parameters.
+
 #### Set your status for a flow
 ```javascript
-session.status('example:main', 'I just got the first message through the Flowdock stream API.');
+session.status('6f67fd0b-b764-4661-9e53-c38293d1e997', 'I just got the first message through the Flowdock stream API.');
 ```
 Both arguments should be strings. Setting a status is flow specific.
 
 #### Post a chat message to a flow
 ```javascript
-session.message('example:main', 'Isn\'t this cool?');
+session.message('6f67fd0b-b764-4661-9e53-c38293d1e997', 'Isn\'t this cool?', ['tag1', 'tag2']);
 ```
-Both arguments should be strings. Sending a message is flow specific.
+Both arguments should be strings. Sending a message is flow specific. Third one is an optional array of tags.
+
+#### Post a comment to a flow
+```javascript
+session.comment('6f67fd0b-b764-4661-9e53-c38293d1e997', 54321, 'I\'m commenting through the api!', ['cool'])
+```
+First argument is flow id, second is the id of the message being commented. Rest of the arguments work the same as with `message`.
 
 #### Post a chat message to a private chat
 ```javascript
@@ -73,7 +104,7 @@ session.flows(function(flows) {
     // variable 'msg' being something like:
     // {
     //   event: 'activity.user',
-    //   flow: 'subdomain:flow',
+    //   flow: '6f67fd0b-b764-4661-9e53-c38293d1e997',
     //   content: { last_activity: 1329310503807 },
     //   user: '12345',
     //   .. plus few other fields
@@ -85,4 +116,4 @@ The full message format specification for different message types is in [Flowdoc
 
 ## Development
 
-You'll need ```coffee-script```, ```mocha``` and ```colors``` for development, just run ```npm install```. Code can be compiled to .js with command ```make build```.
+You'll need `coffee-script`, `mocha` and `colors` for development, just run `npm install`. Code can be compiled to .js with command `make build`.
