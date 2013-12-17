@@ -18,12 +18,10 @@
       "url": "http://opensource.org/licenses/mit-license.php"
     }
   ],
-  "repositories": [
-    {
-      "type": "git",
-      "url": "http://github.com/flowdock/node-flowdock.git"
-    }
-  ],
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/flowdock/node-flowdock.git"
+  },
   "main": "index",
   "directories": {
     "lib": "./lib"
