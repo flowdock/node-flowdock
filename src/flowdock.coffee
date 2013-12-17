@@ -14,8 +14,10 @@ baseURL = ->
   uri = url.parse(process.env.FLOWDOCK_API_URL || 'https://api.flowdock.com')
 
 class Session extends process.EventEmitter
+
   constructor: (@email, @password) ->
     @auth = 'Basic ' + new Buffer(@email + ':' + @password).toString('base64')
+
   flows: (callback) ->
     uri = baseURL()
     uri.path = '/flows?users=1'
@@ -36,11 +38,11 @@ class Session extends process.EventEmitter
         return
 
       flows = JSON.parse body.toString("utf8")
-      callback flows
+      callback(flows, res) if callback?
 
   # Start streaming flows given as argument using authentication credentials
   #
-  # flows - Flow id (String <subdomain>:<flow> or <subdomain>/</flow>) or array of flow ids
+  # flows - Flow id or array of flow ids
   # options - query string hash
   #
   # Returns Stream object
@@ -67,17 +69,26 @@ class Session extends process.EventEmitter
       else if res.statusCode >= 300
         @emit 'error', res.statusCode
         return
-
-      callback res if callback
+      callback(body, res) if callback?
 
   # Send a chat message to Flowdock
-  message: (flow, message, tags, callback) ->
+  message: (flowId, message, tags, callback) ->
     data =
-      flow: flow
+      flow: flowId
       event: 'message'
       content: message
       tags: tags || []
     @send "/messages", data, callback
+
+  # Send a chat comment to Flowdock
+  comment: (flowId, parentId, comment, tags, callback) ->
+    data =
+      flow: flowId
+      message: parentId
+      event: 'comment'
+      content: comment
+      tags: tags || []
+    @send "/comments", data, callback
 
   # Send a private message to Flowdock
   privateMessage: (userId, message, tags, callback) ->
@@ -88,10 +99,11 @@ class Session extends process.EventEmitter
     @send "/private/#{userId}/messages", data, callback
 
   # Change status on Flowdock
-  status: (flow, status) ->
+  status: (flowId, status, callback) ->
     data =
       event: 'status'
       content: status
-    @send flow, data
+      flow: flowId
+    @send "/messages", data, callback
 
 exports.Session = Session
