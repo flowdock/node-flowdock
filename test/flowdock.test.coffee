@@ -23,3 +23,7 @@ describe 'Flowdock', ->
       stream = session.stream 'example:main'
       assert.deepEqual stream.flows, ['example:main']
 
+  describe 'invitations', ->
+    it 'can send an invitation', ->
+      session.invite 'org1', 'flow1', 'test@localhost', 'test message', (result) ->
+        result.state.should.equal 'pending'
