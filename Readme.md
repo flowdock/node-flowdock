@@ -90,6 +90,12 @@ session.privateMessage(12345, 'Hi, this is a secret message!');
 ```
 The first argument is the recipient's ID.
 
+### Invite user to Flow
+```javascript
+session.invite('6f67fd0b-b764-4661-9e53-c38293d1e997', 'organizationId', 'email@example.com', 'Please join to our flow!');
+```
+The first argument is flow id, second is organization id, third is email where the invitation is sent and fourth is message that is sent with invitation.
+
 #### Fetch and stream all the flows your user has an access
 
 ```javascript
