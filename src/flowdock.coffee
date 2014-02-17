@@ -108,7 +108,7 @@ class Session extends process.EventEmitter
 
   # Invite a user to an organization's flow
   invite: (flowId, organizationId, email, message, callback) ->
-    data = 
+    data =
       email: email
       message: message
     @send "/flows/#{organizationId}/#{flowId}/invitations", data, callback
