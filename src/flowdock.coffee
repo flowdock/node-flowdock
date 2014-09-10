@@ -80,6 +80,16 @@ class Session extends process.EventEmitter
       tags: tags || []
     @send "/messages", data, callback
 
+  # Send a thread message to Flowdock
+  threadMessage: (flowId, threadId, message, tags, callback) ->
+    data =
+      flow: flowId
+      thread_id: threadId
+      event: 'message'
+      content: message
+      tags: tags || []
+    @send "/messages", data, callback
+
   # Send a chat comment to Flowdock
   comment: (flowId, parentId, comment, tags, callback) ->
     data =
