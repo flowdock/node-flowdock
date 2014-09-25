@@ -1,6 +1,6 @@
 {
   "name": "flowdock",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Flowdock client library for node.js",
   "keywords": [
     "flowdock"
