@@ -62,14 +62,13 @@ class Session extends process.EventEmitter
         'Authorization': @auth
         'Accept': 'application/json'
 
-    request options, (error, res, body) =>
-      if error
-        @emit 'error', 'Couldn\'t connect to Flowdock'
-        return
+    request options, (err, res, body) =>
+      if err
+        error = 'Couldn\'t connect to Flowdock'
       else if res.statusCode >= 300
-        @emit 'error', res.statusCode
-        return
-      callback(body, res) if callback?
+        error = 'Received status ' + res.statusCode
+      @emit 'error', error if error?
+      callback(error, body, res) if callback?
 
   # Send a chat message to Flowdock
   message: (flowId, message, tags, callback) ->

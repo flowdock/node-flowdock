@@ -64,7 +64,7 @@ The full message format specification for different message types is in [Flowdoc
 
 ### Sending messages
 
-Session has several methods to send messages to Flowdock. All methods except `status` support adding tags to the messages too. You can optionally supply a callback as the last parameter, that gets the created message and the response as parameters.
+Session has several methods to send messages to Flowdock. All methods except `status` support adding tags to the messages too. You can optionally supply a callback as the last parameter, with the signature `-> (err, message, res)`, where message is the created message and res is the raw response object.
 
 #### Set your status for a flow
 ```javascript
@@ -123,3 +123,7 @@ The full message format specification for different message types is in [Flowdoc
 ## Development
 
 You'll need `coffee-script`, `mocha` and `colors` for development, just run `npm install`. Code can be compiled to .js with command `make build`.
+
+## Changes
+
+v. 0.7 - Message callbacks conform to node standard with -> (err, body, res) signature
