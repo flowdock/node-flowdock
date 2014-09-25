@@ -57,7 +57,7 @@ class Stream extends process.EventEmitter
           parser.removeAllListeners()
           @emit 'disconnected'
           @emit 'clientError', 0, 'Disconnected'
-          @emit 'reconnecting', 0 
+          @emit 'reconnecting', 0
 
         @request.pipe parser
         @emit 'connected'

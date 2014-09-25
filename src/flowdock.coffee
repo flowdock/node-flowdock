@@ -29,16 +29,17 @@ class Session extends process.EventEmitter
         'Authorization': @auth
         'Accept': 'application/json'
 
-    request options, (error, res, body) =>
-      if error
-        @emit 'error', 'Couldn\'t connect to Flowdock'
-        return
-      if res.statusCode > 300
-        @emit 'error', res.statusCode
-        return
-
-      flows = JSON.parse body.toString("utf8")
-      callback(flows, res) if callback?
+    request options, (err, res, body) =>
+      if err
+        error = new Error('Couldn\'t connect to Flowdock')
+      else if res.statusCode >= 300
+        error = new Error('Received status ' + res.statusCode)
+      if error?
+        @emit 'error', error
+        callback?(error)
+      else
+        flows = JSON.parse body.toString("utf8")
+        callback?(null, flows, res)
 
   # Start streaming flows given as argument using authentication credentials
   #
@@ -64,11 +65,14 @@ class Session extends process.EventEmitter
 
     request options, (err, res, body) =>
       if err
-        error = 'Couldn\'t connect to Flowdock'
+        error = new Error('Couldn\'t connect to Flowdock')
       else if res.statusCode >= 300
-        error = 'Received status ' + res.statusCode
-      @emit 'error', error if error?
-      callback(error, body, res) if callback?
+        error = new Error('Received status ' + res.statusCode)
+      if error?
+        @emit 'error', error
+        callback?(error)
+      else
+        callback?(null, body, res)
 
   # Send a chat message to Flowdock
   message: (flowId, message, tags, callback) ->
