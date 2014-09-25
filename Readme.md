@@ -126,4 +126,4 @@ You'll need `coffee-script`, `mocha` and `colors` for development, just run `npm
 
 ## Changes
 
-v. 0.7 - Message callbacks conform to node standard with -> (err, body, res) signature
+v. 0.8 - Message callbacks conform to node standard with -> (err, body, res) signature
