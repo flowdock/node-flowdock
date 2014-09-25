@@ -14,6 +14,15 @@ or
 
 ## Example usage
 
+#### Error handling
+
+Note that `Flowdock.Session` will emit errors, and if unhandled they will crash your application. If you want to just handle errors in the callbacks, attach an empty error handler to the instance.
+
+```javascript
+var session = new Session(...);
+session.on('error', function () { /* noop */ });
+```
+
 #### Credentials
 
 Flowdock node library supports both authenticating using [api token](http://www.flowdock.com/account/tokens) or username and password.
@@ -99,7 +108,7 @@ The first argument is flow id, second is organization id, third is email where t
 #### Fetch and stream all the flows your user has an access
 
 ```javascript
-session.flows(function(flows) {
+session.flows(function(err, flows) {
   var anotherStream, flowIds;
   flowIds = flows.map(function(f) {
     return f.id;
