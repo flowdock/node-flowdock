@@ -135,6 +135,7 @@ You'll need `coffee-script`, `mocha` and `colors` for development, just run `npm
 
 ## Changes
 
+- v. 0.8.2 - Newer buffertools to support node 0.11
 - v. 0.8.1 - Errors are error objects instead of strings. Flows callback also receives error as first argument.
 - v. 0.8 - Message callbacks conform to node standard with -> (err, body, res) signature
 
