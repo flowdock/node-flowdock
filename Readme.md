@@ -99,11 +99,24 @@ session.privateMessage(12345, 'Hi, this is a secret message!');
 ```
 The first argument is the recipient's ID.
 
-### Invite user to Flow
+#### Invite user to Flow
 ```javascript
-session.invite('6f67fd0b-b764-4661-9e53-c38293d1e997', 'organizationId', 'email@example.com', 'Please join to our flow!');
+// Note that flow and organization ids must be the "parameterized_name" from api response.
+session.invite('my-flow', 'example-organization', 'email@example.com', 'Please join to our flow!');
 ```
 The first argument is flow id, second is organization id, third is email where the invitation is sent and fourth is message that is sent with invitation.
+
+#### Edit a message
+```javascript
+session.editMessage(
+  'my-flow',
+  'example-organization',
+  {content: 'new content'},
+  function (err, message, response) {
+    /* do something */
+  }
+)
+```
 
 #### Fetch and stream all the flows your user has an access
 
@@ -128,6 +141,28 @@ session.flows(function(err, flows) {
 });
 ```
 The full message format specification for different message types is in [Flowdock API Message documentation](https://www.flowdock.com/api/messages).
+
+## API usage
+
+The Session object can be used as an api wrapper and it has basic http request functions (get, post, put, delete). All accept same parameters: `path`, `data` and `callback`. For example fetching a single flow by id:
+
+```javascript
+session.get(
+  '/flows/find',
+  {id: '6f67fd0b-b764-4661-9e53-c38293d1e997'},
+  function (err, flow, response) {
+    /* do something */
+  }
+);
+```
+
+Or delete a message:
+
+```javascript
+path = flow.url + "/messages/" + message.id;
+session.delete(path, function (err) {
+  /* do something */
+});
 
 ## Development
 
