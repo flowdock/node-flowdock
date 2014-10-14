@@ -27,7 +27,7 @@
     "lib": "./lib"
   },
   "dependencies": {
-    "buffertools": "1.1.0",
+    "buffertools": "2.1.0",
     "request": "2.12.0"
   },
   "devDependencies": {
