@@ -163,6 +163,7 @@ path = flow.url + "/messages/" + message.id;
 session.delete(path, function (err) {
   /* do something */
 });
+```
 
 ## Development
 
