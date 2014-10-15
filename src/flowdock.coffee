@@ -11,7 +11,7 @@ extend = (objects...) ->
   result
 
 baseURL = ->
-  uri = url.parse(process.env.FLOWDOCK_API_URL || 'https://api.flowdock.com')
+  url.parse(process.env.FLOWDOCK_API_URL || 'https://api.flowdock.com')
 
 class Session extends process.EventEmitter
 
@@ -19,27 +19,7 @@ class Session extends process.EventEmitter
     @auth = 'Basic ' + new Buffer(@email + ':' + @password).toString('base64')
 
   flows: (callback) ->
-    uri = baseURL()
-    uri.path = '/flows?users=1'
-
-    options =
-      uri: uri
-      method: 'GET'
-      headers:
-        'Authorization': @auth
-        'Accept': 'application/json'
-
-    request options, (err, res, body) =>
-      if err
-        error = new Error('Couldn\'t connect to Flowdock')
-      else if res.statusCode >= 300
-        error = new Error('Received status ' + res.statusCode)
-      if error?
-        @emit 'error', error
-        callback?(error)
-      else
-        flows = JSON.parse body.toString("utf8")
-        callback?(null, flows, res)
+    @get('/flows', {users: 1}, callback)
 
   # Start streaming flows given as argument using authentication credentials
   #
@@ -53,26 +33,7 @@ class Session extends process.EventEmitter
 
   # Send message to Flowdock
   send: (path, message, callback) ->
-    uri = baseURL()
-    uri.path = path
-    options =
-      uri: uri
-      method: 'POST'
-      json: message
-      headers:
-        'Authorization': @auth
-        'Accept': 'application/json'
-
-    request options, (err, res, body) =>
-      if err
-        error = new Error('Couldn\'t connect to Flowdock')
-      else if res.statusCode >= 300
-        error = new Error('Received status ' + res.statusCode)
-      if error?
-        @emit 'error', error
-        callback?(error)
-      else
-        callback?(null, body, res)
+    @post path, message, callback
 
   # Send a chat message to Flowdock
   message: (flowId, message, tags, callback) ->
@@ -125,5 +86,48 @@ class Session extends process.EventEmitter
       email: email
       message: message
     @send "/flows/#{organizationId}/#{flowId}/invitations", data, callback
+
+  editMessage: (flowId, organizationId, messageId, data, callback) ->
+    @put "/flows/#{organizationId}/#{flowId}/messages/#{messageId}", data, callback
+
+  # API access
+  post: (path, data, cb) ->
+    @_request('post', path, data, cb)
+
+  get: (path, data, cb) ->
+    @_request('get', path, data, cb)
+
+  put: (path, data, cb) ->
+    @_request('put', path, data, cb)
+
+  delete: (path, cb) ->
+    @_request('delete', path, {}, cb)
+
+  _request: (method, path, data, cb) ->
+    uri = baseURL()
+    uri.pathname = path
+    if method.toLowerCase() == 'get'
+      qs = data
+      data = {}
+    options =
+      uri: url.format(uri)
+      method: method
+      json: data
+      qs: qs
+      headers:
+        'Authorization': @auth
+        'Accept': 'application/json'
+        'Content-Type': 'application/json'
+
+    request options, (err, res, body) =>
+      if err
+        error = new Error('Couldn\'t connect to Flowdock:' + err.toString())
+      else if res.statusCode >= 300
+        error = new Error('Received status ' + res.statusCode)
+      if error?
+        @emit 'error', error
+        cb?(error)
+      else
+        cb?(null, body, res)
 
 exports.Session = Session
