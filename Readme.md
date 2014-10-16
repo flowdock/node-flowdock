@@ -167,7 +167,7 @@ session.delete(path, function (err) {
 
 ## Development
 
-You'll need `coffee-script`, `mocha` and `colors` for development. Just run `npm install`. Code can be compiled to .js with command `make build`.
+Run `npm install`. Code can be compiled to .js with command `make build`.
 
 ## Changes
 
