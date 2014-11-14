@@ -107,10 +107,14 @@ session.invite('my-flow', 'example-organization', 'email@example.com', 'Please j
 The first argument is flow ID, the second one is the organization ID, the third one is the invitation recipient's email address and the fourth is the custom message that is sent with the invitation.
 
 #### Edit a message
+
+When editing a message, you need to specify the organization, flow and message id of the edited message. You can then change the content or tags by supplying them in the data hash.
+
 ```javascript
 session.editMessage(
   'my-flow',
   'example-organization',
+  12345,
   {content: 'new content'},
   function (err, message, response) {
     /* do something */
