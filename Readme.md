@@ -9,7 +9,7 @@ or
 
     # in package.json
     "dependencies": {
-      "node-flowdock": "latest"
+      "flowdock": "latest"
     }
 
 ## Example usage
