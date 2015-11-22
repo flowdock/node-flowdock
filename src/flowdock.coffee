@@ -10,12 +10,9 @@ extend = (objects...) ->
       result[key] = value
   result
 
-baseURL = ->
-  url.parse(process.env.FLOWDOCK_API_URL || 'https://api.flowdock.com')
-
 class Session extends process.EventEmitter
 
-  constructor: (@email, @password) ->
+  constructor: (@email, @password, @url = process.env.FLOWDOCK_API_URL || 'https://api.flowdock.com') ->
     @auth = 'Basic ' + new Buffer(@email + ':' + @password).toString('base64')
 
   flows: (callback) ->
@@ -104,7 +101,7 @@ class Session extends process.EventEmitter
     @_request('delete', path, {}, cb)
 
   _request: (method, path, data, cb) ->
-    uri = baseURL()
+    uri = @baseURL()
     uri.pathname = path
     if method.toLowerCase() == 'get'
       qs = data
@@ -129,5 +126,8 @@ class Session extends process.EventEmitter
         cb?(error)
       else
         cb?(null, body, res)
+
+  baseURL: () ->
+    url.parse(@url)
 
 exports.Session = Session
