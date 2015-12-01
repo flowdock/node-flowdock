@@ -59,3 +59,18 @@ describe 'Flowdock', ->
         assert.deepEqual data, {flow: "foo"}
         done()
 
+  describe 'Session', ->
+    it 'should optionally take a URL', (done) ->
+      alt_mockdock = Mockdock.start()
+      alt_session = new flowdock.Session('test', 'password', "http://localhost:#{alt_mockdock.port}")
+      
+      alt_mockdock.on 'request', (req, res) ->
+        assert.equal req.url, '/flows/find?id=acdcabbacd1234567890'
+        res.setHeader('Content-Type', 'application/json')
+        res.end('{"flow":"foo"}')
+      alt_session._request 'get', '/flows/find', {id: 'acdcabbacd1234567890'}, (err, data, res) ->
+        assert.equal err, null
+        assert.deepEqual data, {flow: "foo"}
+        alt_mockdock.removeAllListeners()
+        done()
+      
