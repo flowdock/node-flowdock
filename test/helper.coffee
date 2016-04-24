@@ -1,7 +1,8 @@
+events = require 'events'
 http = require 'http'
 
 # Fake Flowdock Streaming API, do whatever you want
-class Mockdock extends process.EventEmitter
+class Mockdock extends events.EventEmitter
   request: (req, res) =>
     @emit 'request', req, res
   constructor: (@port) ->

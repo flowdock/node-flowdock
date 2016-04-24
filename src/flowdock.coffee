@@ -10,7 +10,7 @@ extend = (objects...) ->
       result[key] = value
   result
 
-class Session extends process.EventEmitter
+class Session extends events.EventEmitter
 
   constructor: (@email, @password, @url = process.env.FLOWDOCK_API_URL || 'https://api.flowdock.com') ->
     @auth = 'Basic ' + new Buffer(@email + ':' + @password).toString('base64')
