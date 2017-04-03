@@ -1,4 +1,5 @@
 url = require 'url'
+events = require 'events'
 request = require 'request'
 JSONStream = require './json_stream'
 
@@ -14,7 +15,7 @@ backoff = (backoff, errors, operator = '*') ->
       Math.pow 2, errors - 1) * backoff.delay
   )
 
-class Stream extends process.EventEmitter
+class Stream extends events.EventEmitter
   constructor: (@auth, @flows, @params = {}) ->
     @networkErrors = 0
     @responseErrors = 0
